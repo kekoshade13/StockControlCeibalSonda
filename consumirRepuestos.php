@@ -57,33 +57,12 @@ $usuario = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
                                     <input type="text" class="form-control" id="inputRepuesto" name="code" placeholder="Código del repuesto">
                                     </div>
                                 </div>
-                                <input type="button" class="btn btn-success consumRep w-100" value="Consumir Repuesto" />
+                                <input type="button" class="btn btn-success consumRep w-100" id="buttonOper" value="Consumir Repuesto" />
                             </form>
+                            <div class="alert alert-success text-center m-3 d-none" id="messageRep" role="alert"></div>
                         </div>
 
                         <!-- -------------------------------------------------------------- Fin Consumo Repuestos -------------------------------------------------------------- -->
-                        
-                        <!-- -------------------------------------------------------------- Devolución Repuestos -------------------------------------------------------------- -->
-                        
-                        <div class="col-6 m-2" id="devolverRepuesto" style="display: none;">
-                            <form id="consumirForm">
-                                <div class="form-group row">
-                                    <label for="staticEmail" class="col-sm-2 col-form-label">Usuario</label>
-                                    <div class="col-sm-10 mb-4">
-                                    <input type="text" readonly class="form-control-plaintext" name="nombre" id="staticName1" value="<?php echo $usuario->nombre_u; ?>">
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                     <label for="inputRepuesto" class="col-sm-2 col-form-label">Repuesto</label>
-                                    <div class="col-sm-10 mb-5">
-                                    <input type="text" class="form-control" id="inputRepuesto1" name="code" placeholder="Código del repuesto">
-                                    </div>
-                                </div>
-                                <input type="button" id="consumRep" class="btn btn-danger consumRep w-100" value="Devolver Repuesto" />
-                            </form>
-                        </div>
-
-                        <!-- -------------------------------------------------------------- Fin Devolución Repuestos -------------------------------------------------------------- -->
                         
                         <div class="logosCompany" style="position:absolute; bottom: 0px; right: 0px; opacity: 0.9;">
                             <img src="assets/img/logos/logoceibal.png" alt="" width="150">
@@ -102,21 +81,84 @@ $usuario = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
     <script src="assets/js/popper.min.js"></script>
     <script>
 
+        $(document).on('click', '.consumRep', function(e) {
+            var tipoOperacion = document.getElementById("resultadoConsumo");
+            var codigo = document.getElementById("inputRepuesto").value;
+            var nombre = document.getElementById("staticName").value;
+            var messageRep = document.getElementById('messageRep');
+
+            if(tipoOperacion.innerHTML == "Consumir Repuestos") {
+                messageRep.classList.add('d-none');
+                if(codigo != "") {
+                    $.ajax({
+                        url: "assets/php/inventoryClass.php",
+                        data: {name: nombre, code: codigo, funcion: "consumirRepuestos"},
+                        type: "POST",
+                        dataType: "JSON",
+                        success: function(e) {
+                            var message = JSON.parse(e);
+                            if(message == 1) {
+                                messageRep.classList.remove('d-none');
+                                messageRep.classList.remove('alert-danger');
+                                messageRep.classList.add('alert-success');
+                                messageRep.innerHTML = "Se ha consumido el repuesto: " + codigo + " correctamente.";
+                            } else {
+                                messageRep.classList.remove('alert-success');
+                                messageRep.classList.add('alert-danger');
+                                messageRep.innerHTML = "Ha ocurrido un error al bajar el repuesto: " + codigo + ". Por favor, ¡Contacta a un administrador!";
+                            }
+                        }
+                    });
+                } else {
+                    alert("Debes ingresar un código correcto.");
+                }
+            } else if(tipoOperacion.innerHTML == "Devolver Repuestos") {
+                var codigo = document.getElementById("inputRepuesto").value;
+                var nombre = document.getElementById("staticName").value;
+                if(codigo != "") {
+                    $.ajax({
+                        url: "assets/php/inventoryClass.php",
+                        data: {name: nombre, code: codigo, funcion: "devolverRepuestos"},
+                        type: "POST",
+                        dataType: "JSON",
+                        success: function(e) {
+                            var message = JSON.parse(e);
+                            if(message == 1) {
+                                messageRep.classList.remove('d-none');
+                                messageRep.classList.remove('alert-success');
+                                messageRep.classList.add('alert-danger');
+                                messageRep.innerHTML = "Se ha devuelto el repuesto: " + codigo + " correctamente.";
+                            } else {
+                                messageRep.classList.remove('alert-success');
+                                messageRep.classList.add('alert-danger');
+                                messageRep.innerHTML = "Ha ocurrido un error al bajar el repuesto: " + codigo + ". Por favor, ¡Contacta a un administrador!";
+                            }
+                        }
+                    });
+                } else {
+                    alert("Debes ingresar un código correcto.");
+                }
+            }
+        }); 
+
         function mostrarConsumirODevolver(valOM) {
                 var resultadoConsumo = document.getElementById('resultadoConsumo');
+                var tipoBoton = document.getElementById('buttonOper');
                 if(valOM == 'devolverRep') {
-                    document.getElementById('devolverRepuesto').style.display = "inline-block";
-                    document.getElementById('devolverRepuesto').style.display = "inline-block";
-                    document.getElementById('consumirRepuesto').style.display = "none";
+                    document.getElementById('inputRepuesto').placeholder = "Codigo del repuesto a devolver";
                     resultadoConsumo.classList.remove('border-success');
                     resultadoConsumo.classList.add('border-danger');
+                    tipoBoton.classList.remove('btn-success');
+                    tipoBoton.classList.add('btn-danger');
+                    tipoBoton.value = "Devolver repuesto";
                     document.getElementById('resultadoConsumo').innerHTML = "Devolver Repuestos";
                 } else if(valOM == 'consumirRep') {
-                    document.getElementById('consumirRepuesto').style.display = "inline-block";
-                    document.getElementById('consumirRepuesto').style.display = "inline-block";
-                    document.getElementById('devolverRepuesto').style.display = "none";
+                    document.getElementById('inputRepuesto').placeholder = "Codigo del repuesto";
                     resultadoConsumo.classList.remove('border-danger');
                     resultadoConsumo.classList.add('border-success');
+                    tipoBoton.classList.remove('btn-danger');
+                    tipoBoton.classList.add('btn-success');
+                    tipoBoton.value = "Consumir Repuesto";
                     document.getElementById('resultadoConsumo').innerHTML = "Consumir Repuestos";
                 }
             }

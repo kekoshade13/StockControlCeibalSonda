@@ -3,7 +3,7 @@ include_once('assets/php/connection.php');
 include_once('assets/php/inventoryClass.php');
 
 $inventario = inventoryClass::obtenerInventario();
-
+$pagina = 0;
 
 if(isset($_GET['pag'])) {
     $pagina = $_GET['pag'];
@@ -64,17 +64,9 @@ if(isset($_GET['pag'])) {
                                 <?php
                                 
                                     for($x = 1; $x <= inventoryClass::$paginas; $x++) {
-                                        if(isset($pagina) == $x) {
-                                            ?>
-                                            <li class="page-item active">
-                                            
-                                            <a class="page-link" href="inventario.php?pag=<?php echo $x ?>"><?php echo $x ?>
-                                            </a>
-                                            </li>
-                                            <?php
-                                        } else {
-                                            
-                                        }
+                                        ?>
+                                        <li class="page-item <?php if($pagina == $x) {echo 'active'; }?>"><a class="page-link" href="inventario.php?pag=<?php echo $x ?>"><?php echo $x ?></a></li>
+                                        <?php
                                     }
                                 ?>
                             </ul>

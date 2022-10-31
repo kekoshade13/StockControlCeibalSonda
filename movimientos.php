@@ -68,27 +68,11 @@ if(isset($_GET['pag'])) {
                         <form action="assets/php/inventoryClass.php">
                             <ul class="pagination">
                                 <?php
-                                
-                                    for($x = 1; $x <= inventoryClass::$paginas; $x++) {
-                                        if(isset($pagina) == $x) {
-                                            ?>
-                                            <li class="page-item active">
-                                            
-                                            <a class="page-link" href="movimientos.php?pag=<?php echo $x ?>"><?php echo $x ?>
-                                            </a>
-
-                                            </li>
-                                            <?php
-                                        } else {
-                                            ?>
-                                            <li class="page-item">
-                                            
-                                            <a class="page-link" href="movimientos.php?pag=<?php echo $x ?>"><?php echo $x ?>
-                                            </a>
-                                            </li>
-                                            <?php
-                                        }
-                                    }
+                                for($x = 1; $x <= inventoryClass::$paginas; $x++) {
+                                    ?>
+                                    <li class="page-item <?php if($pagina == $x) {echo 'active'; }?>"><a class="page-link" href="movimientos.php?pag=<?php echo $x ?>"><?php echo $x ?></a></li>
+                                    <?php
+                                }
                                 ?>
                             </ul>
                         </form>

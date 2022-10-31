@@ -1,14 +1,18 @@
 <?php 
 include 'assets/php/connection.php';
-$code = 120036;
+$code = 1211111111111;
 $db = getDB();
-$consulta = $db->prepare("SELECT qty FROM SpareParts where code= ?");
-$consulta->execute([$code]);
+try {
+    $stmt = $db->prepare("SELECT * FROM spareparts where code = ?");
+    $stmt->execute([$code]);
+    
 
-$count = $consulta->rowCount();
-
-if($count) {
-    echo 'hola';
-} else {
-    echo 'adios';
+    $count = $stmt->rowCount();
+    if($count) {
+        echo "hola";
+    } else {
+        echo "adios";
+    }
+}catch(PDOException $e) {
+    echo e->getMessage();
 }
