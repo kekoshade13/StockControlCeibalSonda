@@ -1,12 +1,17 @@
 <?php
 include_once('assets/php/connection.php');
+include 'assets/php/userClass.php';
 include_once('assets/php/inventoryClass.php');
 
 $movimientos = inventoryClass::obtenerMovimientos();
-
-
 if(isset($_GET['pag'])) {
     $pagina = $_GET['pag'];
+}
+
+if($_SESSION['sesion_exito'] != 1) {
+    header('Location: login.php');
+} else {
+    $dataUser = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
 }
 ?>
 <!DOCTYPE html>
@@ -30,14 +35,44 @@ if(isset($_GET['pag'])) {
             include 'assets/php/menu/menu.php';
         ?>
         </div>
-        <div class="col-10">   
-            <table class="table table-striped">
+        <div class="col-10">  
+        
+            <nav class="navbar navbar-expand-lg mb-5">
+                <div class="container">
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Home</a>
+                            </li>
+                            <li class="nav-item">
+                            <a class="nav-link" href="#">Features</a>
+                            </li>
+                            <li class="nav-item">
+                            <a class="nav-link" href="#">Pricing</a>
+                            </li>
+                            <li class="nav-item">
+                            <a class="nav-link disabled">Disabled</a>
+                            </li>
+                        </ul>
+                            <ul class="navbar-nav" style="position: absolute; left: 80%; top: 5%;">
+                                <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <?php echo $dataUser->nombre." ".$dataUser->apellido ?>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="logout.php">Cerrar Sesión</a></li>
+                                </ul>
+                                </li>
+                            </ul>
+                    </div>
+                </div>
+            </nav> 
+            <table class="table table-striped" width="10%">
                 <thead>
                     <tr>
-                        <th scope="col">N°</th>
                         <th scope="col">Nombre</th>
                         <th scope="col">Código</th>
-                        <th scope="col">Tipo de Movimiento</th>
+                        <th scope="col" width="18%">Tipo de Movimiento</th>
                         <th scope="col">Cantidad</th>
                         <th scope="col">Fecha</th>
                     </tr>
@@ -47,7 +82,6 @@ if(isset($_GET['pag'])) {
                     foreach($movimientos as $mov) {
                     ?>
                     <tr>
-                        <th scope="row"><?php echo $mov->id_movement ?></th>
                         <th><?php echo $mov->nombre ?></th>
                         <th><?php echo $mov->code ?></th>
                         <th><?php echo $mov->move ?></th>

@@ -1,7 +1,11 @@
 <?php 
 include 'assets/php/userClass.php';
-include 'assets/php/inventoryClass.php';
-$usuario = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
+if($_SESSION['sesion_exito'] != 1) {
+    header('Location: login.php');
+} else {
+    $dataUser = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -27,7 +31,10 @@ $usuario = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
                 
                 <!-- -------------------------------------------------------------- Contenedor Principal -------------------------------------------------------------- -->
                 <div class="col-10">
-                <div class="dropdown btn-group" style="position:relative; top: 100px; left: 50px;">
+                <?php
+                include 'assets/php/menu/menu2.php';
+                ?>
+                <div class="dropdown btn-group" style="position:relative; top: 30px; left: 50px;">
                     <a class="btn border-success dropdown-toggle btn-lg" href="#" id="resultadoConsumo" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
                         Seleccionar acción
                     </a>
@@ -39,16 +46,16 @@ $usuario = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
                 </div>
 
                 
-                    <div class="w-100 font-weight-bold" style="display: flex; height: 90%;justify-content: center; align-items: center; font-size: 23px;">
+                    <div class="w-100 font-weight-bold" style="display: flex; height: 75%;justify-content: center; align-items: center; font-size: 23px;">
                         
                         <!-- -------------------------------------------------------------- Consumo Repuestos -------------------------------------------------------------- -->
                         
-                        <div class="col-6 m-2" id="consumirRepuesto" style="display: inline-block;">
+                        <div class="col-6 m-2 d-none" id="consumirRepuesto" style="display: inline-block;">
                             <form id="consumirForm">
                                 <div class="form-group row">
                                     <label for="staticEmail" class="col-sm-2 col-form-label">Usuario</label>
                                     <div class="col-sm-10 mb-4">
-                                    <input type="text" readonly class="form-control-plaintext" name="nombre" id="staticName" value="<?php echo $usuario->nombre_u; ?>">
+                                    <input type="text" readonly class="form-control-plaintext" name="nombre" id="staticName" value="<?php echo $dataUser->nombre_u; ?>">
                                     </div>
                                 </div>
                                 <div class="form-group row">
@@ -80,12 +87,12 @@ $usuario = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/popper.min.js"></script>
     <script>
+        var messageRep = document.getElementById('messageRep');
 
         $(document).on('click', '.consumRep', function(e) {
             var tipoOperacion = document.getElementById("resultadoConsumo");
             var codigo = document.getElementById("inputRepuesto").value;
             var nombre = document.getElementById("staticName").value;
-            var messageRep = document.getElementById('messageRep');
 
             if(tipoOperacion.innerHTML == "Consumir Repuestos") {
                 messageRep.classList.add('d-none');
@@ -144,7 +151,10 @@ $usuario = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
         function mostrarConsumirODevolver(valOM) {
                 var resultadoConsumo = document.getElementById('resultadoConsumo');
                 var tipoBoton = document.getElementById('buttonOper');
+                var consumo = document.getElementById('consumirRepuesto');
                 if(valOM == 'devolverRep') {
+                    messageRep.classList.add('d-none');
+                    consumo.classList.remove('d-none');
                     document.getElementById('inputRepuesto').placeholder = "Codigo del repuesto a devolver";
                     resultadoConsumo.classList.remove('border-success');
                     resultadoConsumo.classList.add('border-danger');
@@ -153,6 +163,8 @@ $usuario = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
                     tipoBoton.value = "Devolver repuesto";
                     document.getElementById('resultadoConsumo').innerHTML = "Devolver Repuestos";
                 } else if(valOM == 'consumirRep') {
+                    messageRep.classList.add('d-none');
+                    consumo.classList.remove('d-none');
                     document.getElementById('inputRepuesto').placeholder = "Codigo del repuesto";
                     resultadoConsumo.classList.remove('border-danger');
                     resultadoConsumo.classList.add('border-success');

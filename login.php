@@ -1,6 +1,10 @@
 <?php
 include 'assets/php/connection.php';
 include 'assets/php/userClass.php';
+
+if(isset($_SESSION['sesion_exito']) != 0) {
+    header("Location: index.php");
+}
 ?>
 <!DOCTYPE html>
 
