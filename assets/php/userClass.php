@@ -10,7 +10,11 @@ if(!empty($_POST['funcion'])) {
                 $usuario = $_POST['nombre_u'];
                 $contrasenia = $_POST['password'];
                 $cedula = $_POST['ci'];
-                $class = $_POST['class'];
+                $class = "";
+
+                if(isset($_POST['class'])) {
+                    $class = $_POST['class'];
+                }
                 userClass::registrarUsuario($nombre, $apellido, $usuario, $cedula, $contrasenia, $class);
             }
             break;
@@ -23,18 +27,28 @@ if(!empty($_POST['funcion'])) {
     }
 }
 class  userClass {
+
+    public static $options = ['cost' => 12];
+
+    public function __construct() {
+
+    }
     public static function userLogin($ci, $contrasenia) {  
         try {
             $db = getDB();
-            $query = $db->prepare("SELECT * FROM users WHERE ci= ? AND pass= ?");
-            $query->execute([$ci,$contrasenia]);
+            $query = $db->prepare("SELECT * FROM users WHERE ci= ?");
+            $query->execute([$ci]);
             $data = $query->fetch(PDO::FETCH_OBJ);
             $count = $query->rowCount();
 
             if($count > 0) {
-                $_SESSION['uid'] = $data->id_user;
-                $_SESSION['sesion_exito'] = 1;
-                return $_SESSION['uid'];
+                if(password_verify($contrasenia, $data->pass)) {
+                    $_SESSION['uid'] = $data->id_user;
+                    $_SESSION['sesion_exito'] = 1;
+                    return $_SESSION['uid'];
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
@@ -59,7 +73,6 @@ class  userClass {
             if($countUser > 0) {
                 echo json_encode(0);
             } else {
-
                 $verifyCI = $db->prepare("SELECT * FROM users WHERE ci = ?");
                 $verifyCI->execute([$ci]);
                 $countCI = $verifyCI->rowCount();
@@ -67,11 +80,13 @@ class  userClass {
                 if($countCI > 0) {
                     echo json_encode(2);
                 } else {
-                    $query = $db->prepare("INSERT INTO users (nombre_u, nombre, apellido, ci, pass, class) VALUES ('$usuario', '$nombre', '$apellido', '$ci', '$pass', '$class')");
+                    $passhash= password_hash($pass, PASSWORD_BCRYPT);;
+                    $query = $db->prepare("INSERT INTO users (nombre_u, nombre, apellido, ci, pass, class) VALUES ('$usuario', '$nombre', '$apellido', '$ci', '$passhash', '$class')");
                     $query->execute();
-        
                     if($query) {
                         echo json_encode(1);
+                    } else { 
+                        echo json_encode(0);
                     }
                 }
                 

@@ -1,9 +1,9 @@
 <?php
-include 'assets/php/connection.php';
 include 'assets/php/userClass.php';
 
 if(isset($_SESSION['sesion_exito']) != 0) {
-    header("Location: index.php");
+    $dataUser = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
+    header("Location: index.php?id=$dataUser->id_user");
 }
 ?>
 <!DOCTYPE html>
@@ -13,7 +13,7 @@ if(isset($_SESSION['sesion_exito']) != 0) {
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <link href="assets/css/bootstrap.min.css" rel="stylesheet">
     <script src="assets/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script src="assets/js/jquery-3.6.1.min.js"></script>
     <link href="assets/css/styles.css" rel="stylesheet" />
     <title>Login Prueba</title>
 </head>
@@ -54,7 +54,7 @@ if(isset($_SESSION['sesion_exito']) != 0) {
             if(strlen(trim($ci)) > 1 && strlen(trim($pass)) > 1) {
                 $id = userClass::userLogin($ci, $pass);
                 if($id) {
-                    header("Location: index.php?id=$id");
+                    header("Location: index.php");
                 } else {
                     header('Location: login.php');
                 }

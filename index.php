@@ -14,7 +14,7 @@ if($_SESSION['sesion_exito'] != 1) {
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
     <script src="assets/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script src="assets/js/jquery-3.6.1.min.js"></script>
     <link href="assets/css/styles.css" rel="stylesheet" />
     <title>Inicio</title>
 </head>
@@ -35,7 +35,7 @@ if($_SESSION['sesion_exito'] != 1) {
                         <?php
                             if($dataUser) {
                             ?>
-                                <p class="h1 display-4">Bienvenido <?php echo  $dataUser->nombre. " ".$dataUser->apellido;?></p>
+                                <p class="h1 display-4">Bienvenido <?php echo  $dataUser->nombre;?></p>
                             <?php
                             }
                         ?>

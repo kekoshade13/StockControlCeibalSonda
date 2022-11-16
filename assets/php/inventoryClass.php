@@ -39,9 +39,31 @@ if(!empty($_POST['funcion'])) {
             if(!empty($_POST['codeAument']) && !empty($_POST['cantidad'])) {
                 $codeAument = $_POST['codeAument'];
                 $cantidad = $_POST['cantidad'];
-
                 inventoryClass::aumentarStock($codeAument, $cantidad);
             }
+            break;
+        case 'filtrarMovimientos':
+            if(!empty($_POST['nombre_u'])) {
+                $nombre = $_POST['nombre_u'];
+            } else {
+                $nombre = '';
+            }
+            if(!empty($_POST['dateIni'])) {
+                $fechaI = $_POST['dateIni'];
+            } else {
+                $fechaI = '';
+            }
+            if(!empty($_POST['dateFin'])) {
+                $fechaF = $_POST['dateFin'];
+            } else {
+                $fechaF = '';
+            }
+            if(!empty($_POST['code'])) {
+                $code = $_POST['code'];
+            } else {
+                $code = '';
+            }
+            inventoryClass::obtenerMovimientos($nombre, $fechaI, $fechaF, $code);
             break;
     }
 }
@@ -63,56 +85,87 @@ class inventoryClass {
     public static function obtenerInventario() {
         try {
             $db = getDB();
+
+            self::$pagina = isset($_GET['pag']) ? (int)$_GET['pag'] : 1;
+
             self::$productosPorPagina = 8;
-            self::$pagina = 1;
-            if(isset($_GET['pag'])) {
-                self::$pagina = $_GET['pag'];
-            }
 
-                $offset = (self::$pagina - 1) * self::$productosPorPagina;
+            $inicio  = (self::$pagina>1) ? ((self::$pagina * self::$productosPorPagina)-self::$productosPorPagina) : 0;
 
-                $stmt = $db->query("SELECT COUNT(*) AS conteo FROM SpareParts");
-                self::$conteo = $stmt->fetchObject()->conteo;
+            $registros = "SELECT SQL_CALC_FOUND_ROWS * FROM SpareParts";
 
-                self::$paginas = ceil(self::$conteo / self::$productosPorPagina);
+            $registros .= " LIMIT $inicio, ".self::$productosPorPagina;
 
-                $busqueda = $db->prepare("SELECT * FROM SpareParts LIMIT 8 OFFSET $offset");
-                $busqueda->execute();
+            $registros = $db->prepare($registros);
 
-                $resultado = $busqueda->fetchAll(PDO::FETCH_OBJ);
+            $registros->execute();
 
-                return $resultado;
-                $db->null;
+            $registros = $registros->fetchAll();
+
+            self::$conteo = $db->query("SELECT FOUND_ROWS() as total");
+            self::$conteo = self::$conteo->fetch()['total'];
+
+            self::$paginas = ceil(self::$conteo / self::$productosPorPagina);
+
+            return $registros;
         } catch(PDOException $e) {
             echo '"error":{"text:"'. $e->getMessage().'}}';
         }
     }
 
-    public static function obtenerMovimientos() {
+    public static function obtenerMovimientos($nombre_u, $fechaI, $fechaF, $codigo) {
         try {
             $db = getDB();
+
+            self::$pagina = isset($_GET['pag']) ? (int)$_GET['pag'] : 1;
+
             self::$productosPorPagina = 8;
-            self::$pagina = 1;
-            if(isset($_GET['pag'])) {
-                self::$pagina = $_GET['pag'];
+
+            $inicio  = (self::$pagina>1) ? ((self::$pagina * self::$productosPorPagina)-self::$productosPorPagina) : 0;
+
+            $registros = "SELECT SQL_CALC_FOUND_ROWS * FROM Movements WHERE nombre = ?";
+
+            if(!empty($fechaI)) {
+                $registros .= " AND date >= '".$fechaI."'";
+            }
+            if(!empty($fechaF)) {
+                $registros .= " AND date <= '".$fechaF."'";
+            }
+            if(!empty($codigo)) {
+                $registros .= " AND code LIKE ".$codigo;
             }
 
-                $offset = (self::$pagina - 1) * self::$productosPorPagina;
+            $registros .= " order by date desc";
 
-                $stmt = $db->query("SELECT * FROM Movements");
-                $stmt->fetchObject();
-                self::$conteo = $stmt->rowCount();
+            $registros = $db->prepare($registros);
 
-                self::$paginas = ceil(self::$conteo / self::$productosPorPagina);
+            $registros->execute([$nombre_u]);
 
-                $busqueda = $db->prepare("SELECT * FROM Movements order by date desc LIMIT 8 OFFSET $offset");
-                $busqueda->execute();
+            $registros = $registros->fetchAll();
 
-                $resultado = $busqueda->fetchAll(PDO::FETCH_OBJ);
+            self::$conteo = $db->query("SELECT FOUND_ROWS() as total");
+            self::$conteo = self::$conteo->fetch()['total'];
 
-                return $resultado;
+            self::$paginas = ceil(self::$conteo / self::$productosPorPagina);
 
-                $db->null;
+            $tabla = '<table class="table table-striped">
+            <thead>
+            <th>Nombre</th>
+            <th>Código</th>
+            <th>Cantidad</th>
+            <th>Fecha</th>
+            </thead><tbody>';
+            foreach($registros as $reg) {
+                $tabla .= '<tr>
+                    <td>'.$reg['nombre'].'</td>
+                    <td>'.$reg['code'].'</td>
+                    <td>'.$reg['qty'].'</td>
+                    <td>'.$reg['date'].'</td>
+                    </tr>';
+            }
+
+            $tabla .= '</tbody></table>';
+            echo $tabla;
         } catch(PDOException $e) {
             echo '"error":{"text:"'. $e->getMessage().'}}';
         }
@@ -136,10 +189,10 @@ class inventoryClass {
                     $movement->execute();
                     echo json_encode(1);
                 } else {
-                    echo json_encode(0);
+                    echo json_encode(2);
                 }
             } else {
-                echo json_encode(0);
+                echo json_encode(3);
             }
         }catch(PDOException $e) {
             echo $e->getMessage();
@@ -166,10 +219,10 @@ class inventoryClass {
                         echo json_encode(1);
                     }
                 } else {
-                    echo json_encode(0);
+                    echo json_encode(2);
                 }
             } else {
-                echo json_encode(0);
+                echo json_encode(3);
             }
         }catch(PDOException $e) {
             echo $e->getMessage();
@@ -205,17 +258,20 @@ class inventoryClass {
     public static function reducirStock($code, $qty) {
         $db = getDB();
         try {
-            $stmt = $db->prepare("UPDATE SpareParts SET qty = qty - $qty WHERE code = $code");
-            $stmt->execute();
-
             $consulta = $db->prepare("SELECT * FROM SpareParts WHERE code = ?");
             $consulta->execute([$code]);
             $cantidad = $consulta->fetch(PDO::FETCH_OBJ);
             if($cantidad->qty > 0) {
-                if($stmt) {
-                    echo json_encode(1);
+                if($qty > $cantidad->qty) {
+                    echo json_encode(2);
                 } else {
-                    echo json_encode(0);
+                    $stmt = $db->prepare("UPDATE SpareParts SET qty = qty - $qty WHERE code = $code");
+                    $stmt->execute();
+                    if($stmt) {
+                        echo json_encode(1);
+                    } else {
+                        echo json_encode(0);
+                    }
                 }
             } else {
                 echo json_encode(0);

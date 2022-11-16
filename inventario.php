@@ -3,7 +3,7 @@ include_once('assets/php/connection.php');
 include 'assets/php/userClass.php';
 include_once('assets/php/inventoryClass.php');
 $inventario = inventoryClass::obtenerInventario();
-$pagina = 0;
+$pagina = 1;
 if($_SESSION['sesion_exito'] != 1) {
     header('Location: login.php');
 } else {
@@ -34,77 +34,82 @@ if($_SESSION['sesion_exito'] != 1) {
             <nav class="navbar navbar-expand-lg mb-5">
                 <div class="container">
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav">
-                            <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="#">Home</a>
-                            </li>
-                            <li class="nav-item">
-                            <a class="nav-link" href="#">Features</a>
-                            </li>
-                            <li class="nav-item">
-                            <a class="nav-link" href="#">Pricing</a>
-                            </li>
-                            <li class="nav-item">
-                            <a class="nav-link disabled">Disabled</a>
-                            </li>
-                        </ul>
-                            <ul class="navbar-nav" style="position: absolute; left: 80%; top: 5%;">
-                                <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <?php echo $dataUser->nombre." ".$dataUser->apellido ?>
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="logout.php">Cerrar Sesión</a></li>
-                                </ul>
-                                </li>
+                        <ul class="navbar-nav" style="position: absolute; left: 80%; top: 5%;">
+                            <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <?php echo $dataUser->nombre." ".$dataUser->apellido ?>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="logout.php">Cerrar Sesión</a></li>
                             </ul>
+                             </li>
+                        </ul>
                     </div>
                 </div>
-            </nav> 
-            <table class="table table-striped">
+            </nav>
+            
+            <div class="col-8">
+            <table  id="tablaMovimientos" class="table table-striped">
                 <thead>
                     <tr>
-                        <th scope="col">Código</th>
-                        <th scope="col">Descripción</th>
-                        <th scope="col">Cantidad</th>
+                        <th scope="col" class="th-sm">Código</th>
+                        <th scope="col" class="th-sm">Nombre</th>
+                        <th scope="col" class="th-sm">Cantidad</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <?php
-                    foreach($inventario as $inv) {
-                    ?>
-                    <tr>
-                        <th scope="row"><?php echo $inv->code ?></th>
-                        <th><?php echo $inv->name ?></th>
-                        <th><?php echo $inv->qty ?></th>
+                <tbody id="productTable">
+                    <?php foreach($inventario as $inv): ?>
+                        <tr>
+                        <td><?php echo $inv['code'] ?></td>
+                        <td><?php echo $inv['name'] ?></td>
+                        <td><?php echo $inv['qty'] ?></td>
                     </tr>
-                    <?php
-                    }
-                    ?>
-                </tbody>                
-            </table>  
+                    <?php endforeach; ?>
+                </tbody>
+            </table> 
 
             <div class="row mx-auto">
                 <div class="col-xs-12 col-sm-6 mx-auto">
                     <div class="col-xs-12 col-sm-6 mx-auto">
                         <p>Página <?php echo inventoryClass::$pagina ?> de <?php echo inventoryClass::$paginas ?> </p>
                     </div>
-                    <nav aria-label="Page navigation example">
-                        <form action="assets/php/inventoryClass.php">
+                        <nav aria-label="Page navigation example">
                             <ul class="pagination">
-                                <?php
-                                
-                                    for($x = 1; $x <= inventoryClass::$paginas; $x++) {
-                                        ?>
-                                        <li class="page-item <?php if($pagina == $x) {echo 'active'; }?>"><a class="page-link" href="inventario.php?pag=<?php echo $x ?>"><?php echo $x ?></a></li>
-                                        <?php
+                            <?php if(inventoryClass::$pagina == 1): ?>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="">Previous</a>
+                                </li>
+                            <?php else: ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="inventario.php?pag=<?php echo (inventoryClass::$pagina-1); ?>">Previous</a>
+                                </li>
+                            <?php endif;
+                                $totalPagination = inventoryClass::$conteo / inventoryClass::$productosPorPagina-15;
+                                for($i = 1; $i<$totalPagination+1; $i++) {
+                                    if(inventoryClass::$pagina == $i) {
+                                        echo '<li class="page-item active"><a class="page-link" href="inventario.php?pag='.$i.'">'.$i.'</a></li>';
+                                    } else {
+                                        echo '<li class="page-item"><a class="page-link" href="inventario.php?pag='.$i.'">'.$i.'</a></li>';
                                     }
+                                }
                                 ?>
+                            <?php if(inventoryClass::$pagina == inventoryClass::$paginas): ?>
+                                <li class="page-item">
+                                    <a class="page-link disabled" href="">Siguiente</a>
+                                </li>
+                            <?php else: ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="inventario.php?pag=<?php echo (inventoryClass::$pagina+1); ?>">Siguiente</a>
+                                </li>
+                            <?php endif;?>
                             </ul>
-                        </form>
-                     </nav>
+                        </nav>
+                    </div>
                 </div>
-                        </div>
+            </div>
+
+        </div>
+    </div>
             <div class="logosCompany" style="position:absolute; bottom: 0px; right: 0px; opacity: 0.9;">
                 <img src="assets/img/logos/logoceibal.png" alt="" width="150">
                 <img src="assets/img/logos/logosonda.png" alt="" width="150">

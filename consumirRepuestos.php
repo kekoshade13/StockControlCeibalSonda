@@ -17,6 +17,7 @@ if($_SESSION['sesion_exito'] != 1) {
     <title>Consumir Repuestos</title>
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/css/styles.css" rel="stylesheet" />
+    <script src="assets/js/jquery-3.6.1.min.js"></script>
 </head>
 <body>
     <div class="container-fluid">
@@ -61,7 +62,7 @@ if($_SESSION['sesion_exito'] != 1) {
                                 <div class="form-group row">
                                      <label for="inputRepuesto" class="col-sm-2 col-form-label">Repuesto</label>
                                     <div class="col-sm-10 mb-5">
-                                    <input type="text" class="form-control" id="inputRepuesto" name="code" placeholder="Código del repuesto">
+                                    <input type="text" class="form-control" id="inputRepuesto" name="code" placeholder="Código del repuesto" pattern="[0,9]">
                                     </div>
                                 </div>
                                 <input type="button" class="btn btn-success consumRep w-100" id="buttonOper" value="Consumir Repuesto" />
@@ -97,25 +98,42 @@ if($_SESSION['sesion_exito'] != 1) {
             if(tipoOperacion.innerHTML == "Consumir Repuestos") {
                 messageRep.classList.add('d-none');
                 if(codigo != "") {
-                    $.ajax({
-                        url: "assets/php/inventoryClass.php",
-                        data: {name: nombre, code: codigo, funcion: "consumirRepuestos"},
-                        type: "POST",
-                        dataType: "JSON",
-                        success: function(e) {
-                            var message = JSON.parse(e);
-                            if(message == 1) {
-                                messageRep.classList.remove('d-none');
-                                messageRep.classList.remove('alert-danger');
-                                messageRep.classList.add('alert-success');
-                                messageRep.innerHTML = "Se ha consumido el repuesto: " + codigo + " correctamente.";
-                            } else {
-                                messageRep.classList.remove('alert-success');
-                                messageRep.classList.add('alert-danger');
-                                messageRep.innerHTML = "Ha ocurrido un error al bajar el repuesto: " + codigo + ". Por favor, ¡Contacta a un administrador!";
+                    if(codigo.length < 6 || codigo.length > 6) {
+                        messageRep.classList.remove('d-none');
+                        messageRep.classList.remove('alert-success');
+                        messageRep.classList.add('alert-danger');
+                        messageRep.innerHTML = "Debes ingresar un repuesto con 6 digitos.";
+                        document.getElementById('inputRepuesto').value = "";
+                    } else {
+                        $.ajax({
+                            url: "assets/php/inventoryClass.php",
+                            data: {name: nombre, code: codigo, funcion: "consumirRepuestos"},
+                            type: "post",
+                            dataType: "json",
+                            success: function(e) {
+                                var message = JSON.parse(e);
+                                if(message == 1) {
+                                    messageRep.classList.remove('d-none');
+                                    messageRep.classList.remove('alert-danger');
+                                    messageRep.classList.add('alert-success');
+                                    messageRep.innerHTML = "Se ha consumido el repuesto: " + codigo + " correctamente.";
+                                    document.getElementById('inputRepuesto').value = "";
+                                } else if(message == 2) {
+                                    messageRep.classList.remove('d-none');
+                                    messageRep.classList.remove('alert-success');
+                                    messageRep.classList.add('alert-danger');
+                                    messageRep.innerHTML = "No contamos con stock del repuesto: " + codigo + ". Por favor, ¡Contacta a un administrador!";
+                                    document.getElementById('inputRepuesto').value = "";
+                                } else if(message == 3) {
+                                    messageRep.classList.remove('d-none');
+                                    messageRep.classList.remove('alert-success');
+                                    messageRep.classList.add('alert-danger');
+                                    messageRep.innerHTML = "¡El código que estas ingresando no existe!";
+                                    document.getElementById('inputRepuesto').value = "";
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 } else {
                     alert("Debes ingresar un código correcto.");
                 }
@@ -123,25 +141,41 @@ if($_SESSION['sesion_exito'] != 1) {
                 var codigo = document.getElementById("inputRepuesto").value;
                 var nombre = document.getElementById("staticName").value;
                 if(codigo != "") {
-                    $.ajax({
-                        url: "assets/php/inventoryClass.php",
-                        data: {name: nombre, code: codigo, funcion: "devolverRepuestos"},
-                        type: "POST",
-                        dataType: "JSON",
-                        success: function(e) {
-                            var message = JSON.parse(e);
-                            if(message == 1) {
-                                messageRep.classList.remove('d-none');
-                                messageRep.classList.remove('alert-success');
-                                messageRep.classList.add('alert-danger');
-                                messageRep.innerHTML = "Se ha devuelto el repuesto: " + codigo + " correctamente.";
-                            } else {
-                                messageRep.classList.remove('alert-success');
-                                messageRep.classList.add('alert-danger');
-                                messageRep.innerHTML = "Ha ocurrido un error al bajar el repuesto: " + codigo + ". Por favor, ¡Contacta a un administrador!";
+                    if(codigo.length < 6 || codigo.length > 6) {
+                        messageRep.classList.remove('d-none');
+                        messageRep.classList.remove('alert-success');
+                        messageRep.classList.add('alert-danger');
+                        messageRep.innerHTML = "Debes ingresar un repuesto con 6 digitos.";
+                        document.getElementById('inputRepuesto').value = "";
+                    } else {
+                        $.ajax({
+                            url: "assets/php/inventoryClass.php",
+                            data: {name: nombre, code: codigo, funcion: "devolverRepuestos"},
+                            type: "POST",
+                            dataType: "JSON",
+                            success: function(e) {
+                                var message = JSON.parse(e);
+                                if(message == 1) {
+                                    messageRep.classList.remove('d-none');
+                                    messageRep.classList.remove('alert-success');
+                                    messageRep.classList.add('alert-danger');
+                                    messageRep.innerHTML = "Se ha devuelto el repuesto: " + codigo + " correctamente.";
+                                    document.getElementById('inputRepuesto').value = "";
+                                } else if(message == 3){
+                                    messageRep.classList.remove('d-none');
+                                    messageRep.classList.remove('alert-success');
+                                    messageRep.classList.add('alert-danger');
+                                    messageRep.innerHTML = "¡El código que estas ingresando no existe!";
+                                } else {
+                                    messageRep.classList.remove('d-none');
+                                    messageRep.classList.remove('alert-success');
+                                    messageRep.classList.add('alert-danger');
+                                    messageRep.innerHTML = "¡Ha ocurrido un error!";
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
+                    
                 } else {
                     alert("Debes ingresar un código correcto.");
                 }
