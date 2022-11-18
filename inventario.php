@@ -2,12 +2,12 @@
 include_once('assets/php/connection.php');
 include 'assets/php/userClass.php';
 include_once('assets/php/inventoryClass.php');
-$inventario = inventoryClass::obtenerInventario();
 $pagina = 1;
 if($_SESSION['sesion_exito'] != 1) {
     header('Location: login.php');
 } else {
     $dataUser = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
+    $obtenerEquipos = inventoryClass::obtenerEquipos();
 }
 ?>
 
@@ -47,63 +47,29 @@ if($_SESSION['sesion_exito'] != 1) {
                     </div>
                 </div>
             </nav>
-            
-            <div class="col-8">
-            <table  id="tablaMovimientos" class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col" class="th-sm">Código</th>
-                        <th scope="col" class="th-sm">Nombre</th>
-                        <th scope="col" class="th-sm">Cantidad</th>
-                    </tr>
-                </thead>
-                <tbody id="productTable">
-                    <?php foreach($inventario as $inv): ?>
-                        <tr>
-                        <td><?php echo $inv['code'] ?></td>
-                        <td><?php echo $inv['name'] ?></td>
-                        <td><?php echo $inv['qty'] ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table> 
-
-            <div class="row mx-auto">
-                <div class="col-xs-12 col-sm-6 mx-auto">
-                    <div class="col-xs-12 col-sm-6 mx-auto">
-                        <p>Página <?php echo inventoryClass::$pagina ?> de <?php echo inventoryClass::$paginas ?> </p>
+            <div class="row">
+                <div class="col-8">
+                    <div id="tabla-movimientos" style="height: 450px; overflow-y: scroll;">
+                                
                     </div>
-                        <nav aria-label="Page navigation example">
-                            <ul class="pagination">
-                            <?php if(inventoryClass::$pagina == 1): ?>
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="">Previous</a>
-                                </li>
-                            <?php else: ?>
-                                <li class="page-item">
-                                    <a class="page-link" href="inventario.php?pag=<?php echo (inventoryClass::$pagina-1); ?>">Previous</a>
-                                </li>
-                            <?php endif;
-                                $totalPagination = inventoryClass::$conteo / inventoryClass::$productosPorPagina-15;
-                                for($i = 1; $i<$totalPagination+1; $i++) {
-                                    if(inventoryClass::$pagina == $i) {
-                                        echo '<li class="page-item active"><a class="page-link" href="inventario.php?pag='.$i.'">'.$i.'</a></li>';
-                                    } else {
-                                        echo '<li class="page-item"><a class="page-link" href="inventario.php?pag='.$i.'">'.$i.'</a></li>';
-                                    }
-                                }
-                                ?>
-                            <?php if(inventoryClass::$pagina == inventoryClass::$paginas): ?>
-                                <li class="page-item">
-                                    <a class="page-link disabled" href="">Siguiente</a>
-                                </li>
-                            <?php else: ?>
-                                <li class="page-item">
-                                    <a class="page-link" href="inventario.php?pag=<?php echo (inventoryClass::$pagina+1); ?>">Siguiente</a>
-                                </li>
-                            <?php endif;?>
-                            </ul>
-                        </nav>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-outline-primary mb-3 btnFiltros" style=""><svg xmlns="http:/www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-filter"viewBox="0 0 16 16">
+                    <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 01h-11a.5.5 0 0 1-.5-.5z"/>
+                    </svg> Filtros</button>
+                    <div class="card d-none" id="pageFiltros">
+                        <h5 class="card-header">Filtros</h5>
+                        <div class="card-body">
+                        <label for="codigoRep">Respuesto</label>
+                        <input type="text" class="form-control w-50 d-inline-block mb-3" id="codigoRep"placeholder="Código" />
+                        <select id="selectEquipos" class="form-select mb-3">
+                            <option selected class="disabled" value="">Selecciona el equipo</option>
+                            <?php foreach($obtenerEquipos as $equipo): ?>
+                            <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->name ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button class="btn btn-outline-primary w-100 btnFiltrar">Filtrar</button>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -117,5 +83,48 @@ if($_SESSION['sesion_exito'] != 1) {
         </div>
     </div>        
 </div>
+
+<script>
+    $.ajax({
+        url: 'assets/php/inventoryClass.php',
+        data: {funcion: "filtrarInventario"},
+        type: "post",
+        success: function(e) {
+            $('#tabla-movimientos').html(e);
+         },
+        error: function(e) {
+            console.log(e);
+        }
+     });
+
+
+     $(document).on('click', '.btnFiltros', function(e) {
+        e.preventDefault();
+        var filtros = document.getElementById('pageFiltros');
+
+        if(filtros.classList.contains('d-none')) {
+            filtros.classList.remove('d-none');
+        } else {
+            filtros.classList.add('d-none');
+        }
+
+        $(document).on('click', '.btnFiltrar', function(e) {
+            var codigo = document.getElementById('codigoRep').value;
+            var equipo = document.getElementById('selectEquipos').value;
+
+            $.ajax({
+                url: 'assets/php/inventoryClass.php',
+                data: {code: codigo, funcion: "filtrarInventario"},
+                type: "post",
+                success: function(event) {
+                    $('#tabla-movimientos').html(event);
+                },
+                error: function(e) {
+                    $('#tabla-movimientos').html("Ha ocurrido un error.");
+                }
+            });
+        });
+     });
+</script>
 </body>
 </html>

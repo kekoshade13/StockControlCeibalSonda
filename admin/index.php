@@ -1,11 +1,13 @@
 <?php
 include '../assets/php/userClass.php';
+include '../assets/php/inventoryClass.php';
 $admin = $_SESSION['uid'];
 $connectAdmin =  userClass::obtenerDatosUnUsuario($admin);
 if(!$connectAdmin->class == "Admin") {
     header("Location:../index.php");
 } else {
     $listaUsuarios = userClass::obtenerUsuarios();
+    $obtenerEquipos = inventoryClass::obtenerEquipos();
 }
 ?>
 
@@ -41,8 +43,11 @@ if(!$connectAdmin->class == "Admin") {
                                     <a href="../inventario.php" class="nav-link text-light pl-4">Inventario</a>
                                 </li>
                                 
-                                <li class="nav-item w-100" style="margin-top: 100%;">
-                                    <a href="../admin/index.php?id=<?php echo $connectAdmin->id_user; ?>" class="nav-link text-light pl-4">Admin</a>
+                                <li class="nav-item w-100 mt-3">
+                                    <a href="../admin/reportes.php" class="nav-link text-light pl-4">Reportes</a>
+                                </li>
+                                <li class="nav-item w-100" style="margin-top: 80%;">
+                                    <a href="../admin/index.php" class="nav-link text-light pl-4">Admin</a>
                                 </li>
                             </ul>
                         </nav>  
@@ -81,6 +86,7 @@ if(!$connectAdmin->class == "Admin") {
                             <li><button class="btn dropdown-item btn-lg" id="gestionRepuestos" type="button" onclick="admGestiones('gestRepu')">Gestion Repuestos</button></li>
                         </ul>
                     </div>
+                    
                     <!-- Tareas Especificas -->
 
                     <!-- Tarea: Gestion Repuestos -->
@@ -232,7 +238,7 @@ if(!$connectAdmin->class == "Admin") {
                                 <div class="form-group row">
                                     <h5 class="display-5 mb-5">Añadir Nuevo Producto</h1>
                                     
-                                    <label for="inputAddNewCodigo" class="form-label col-sm-3">Código</label>
+                                    <label for="inputAddNewCodigo" class="form-label col-sm-3">Código: </label>
                                     <div class="col-sm-8 mb-4">
                                         <input type="text" class="form-control newCode" name="codeAddNew" id="inputAddNewCodigo" placeholder="Ingresa el código">
                                         <small id="codeInfo" class="form-text text-muted" style="font-size: 18px; text-align: left!important;">Solo se aceptan valores numéricos.</small>
@@ -241,6 +247,14 @@ if(!$connectAdmin->class == "Admin") {
                                     <label for="inputNewNombre" class="form-label col-sm-3">Nombre del repuesto</label>
                                     <div class="col-sm-8 mb-4">
                                         <input type="text" class="form-control" id="inputNewNombre" name="qtyRemoveStock" placeholder="Ingresa el nombre del repuesto">
+                                    </div>
+                                    <div class="col-sm-8 mb-4" style="margin-left: 192px;">
+                                        <select name="select_equipo" id="seleccion_Equipo" class="form-select">
+                                            <option selected value="">Selecciona el equipo</option>
+                                            <?php foreach($obtenerEquipos as $equipo): ?>
+                                            <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->name ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     </div>
                                 </div>
                                 <input type="button" class="btn btn-success w-100 mb-2 btnAddNewRepuest" value="Añadir Nuevo Repuesto" />
@@ -567,6 +581,7 @@ if(!$connectAdmin->class == "Admin") {
                 $(document).on('click', '.btnAddNewRepuest', function(event) {
                     var newCodigo = document.getElementById('inputAddNewCodigo').value;
                     var newNameRepuest = document.getElementById('inputNewNombre').value;
+                    var newRepEquipos = document.getElementById('seleccion_Equipo').value;
 
                     if(newCodigo.trim() != "") {
                         if(newNameRepuest.trim() != "") {
@@ -581,12 +596,11 @@ if(!$connectAdmin->class == "Admin") {
                                 } else {
                                     $.ajax({
                                         url: "../assets/php/inventoryClass.php",
-                                        data: {newCode: newCodigo, newNombre: newNameRepuest, funcion: "addNewRepuest"},
+                                        data: {newCode: newCodigo, newNombre: newNameRepuest, newRepEquipo: newRepEquipos, funcion: "addNewRepuest"},
                                         type: "POST",
                                         dataType: "JSON",
                                         success: function(e) {
                                             var message = JSON.parse(e);
-
                                             if(message == 1) {
                                                 responseMessage.classList.add('d-none');
                                                 responseMessage.classList.remove('d-none');
@@ -604,6 +618,9 @@ if(!$connectAdmin->class == "Admin") {
                                                 document.getElementById('inputAddNewCodigo').value = "";
                                                 document.getElementById('inputNewNombre').value = "";
                                             }
+                                        },
+                                        error: function(e) {
+                                            alert("Paso algo");
                                         }
                                     });
                                 }

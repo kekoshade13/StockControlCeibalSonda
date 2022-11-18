@@ -15,7 +15,7 @@
                             <a href="inventario.php" class="nav-link text-light pl-4">Inventario</a>
                         </li>
                         
-                        <li class="nav-item w-100" style="margin-top: 85%;">
+                        <li class="nav-item w-100" style="margin-top: 108%;">
                             <a href="admin/index.php" class="nav-link text-light pl-4">Admin</a>
                         </li>
                     </ul>

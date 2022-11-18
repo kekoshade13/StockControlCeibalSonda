@@ -52,7 +52,7 @@ if($_SESSION['sesion_exito'] != 1) {
                         
                         <div id="tabla-movimientos" style="height: 450px; overflow-y: scroll;">
                             
-                        </div>   
+                        </div>
                         <div class="row mx-auto">
                             <div class="col-xs-12 col-sm-6 mx-auto">
                             <div class="col-xs-12 col-sm-6 mx-auto">
