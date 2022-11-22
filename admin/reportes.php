@@ -79,11 +79,11 @@ if(!$connectAdmin->class == "Admin") {
                             <div class="form row">
                                 <div class="form-group col-md-6">
                                     <label for="start">Fecha Final:</label>
-                                    <input type="text" class="form-control" name="fechaIni" placeholder="Fecha Inicial" id="start"> <br>
+                                    <input type="date" class="form-control" name="fechaIni" placeholder="Fecha Inicial" id="start"> <br>
                                 </div>
                                 <div class="form-group col-md-6">
                                     <label for="end">Fecha Final:</label>
-                                    <input type="text" class="form-control" name="fechaFin" placeholder="Fecha Final" id="end">
+                                    <input type="date" class="form-control" name="fechaFin" placeholder="Fecha Final" id="end">
                                     <br>
                                 </div>
                             </div>  

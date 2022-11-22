@@ -8,6 +8,7 @@ if($_SESSION['sesion_exito'] != 1) {
 } else {
     $dataUser = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
     $obtenerEquipos = inventoryClass::obtenerEquipos();
+    $obtenerTipoStock = inventoryClass::obtenerTiposStock();
 }
 ?>
 
@@ -65,9 +66,19 @@ if($_SESSION['sesion_exito'] != 1) {
                         <select id="selectEquipos" class="form-select mb-3">
                             <option selected class="disabled" value="">Selecciona el equipo</option>
                             <?php foreach($obtenerEquipos as $equipo): ?>
-                            <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->name ?></option>
+                            <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->nameEquipos ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <select id="selectTipoStock" class="form-select mb-3">
+                            <option selected class="disabled" value="">Tipo de Stock</option>
+                            <?php foreach($obtenerTipoStock as $tipoStock): ?>
+                            <option value="<?php echo $tipoStock->id_stock ?>"><?php echo $tipoStock->nameTipoStock ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="CheckCompatiblesR">
+                            <label class="form-check-label" for="CheckCompatiblesR">Repuestos Compatibles</label>
+                        </div>
                         <button class="btn btn-outline-primary w-100 btnFiltrar">Filtrar</button>
                     </div>
                     </div>
@@ -97,7 +108,6 @@ if($_SESSION['sesion_exito'] != 1) {
         }
      });
 
-
      $(document).on('click', '.btnFiltros', function(e) {
         e.preventDefault();
         var filtros = document.getElementById('pageFiltros');
@@ -107,14 +117,21 @@ if($_SESSION['sesion_exito'] != 1) {
         } else {
             filtros.classList.add('d-none');
         }
+            var repCompatible = "";
 
         $(document).on('click', '.btnFiltrar', function(e) {
             var codigo = document.getElementById('codigoRep').value;
             var equipo = document.getElementById('selectEquipos').value;
+            var tipoStock = document.getElementById('selectTipoStock').value;
+
+            var repCompatible = "";
+            if($('#CheckCompatiblesR').is(':checked')) {
+                repCompatible = "Si";
+            }
 
             $.ajax({
                 url: 'assets/php/inventoryClass.php',
-                data: {code: codigo, funcion: "filtrarInventario"},
+                data: {code: codigo, modelo: equipo, compatible: repCompatible, tipoEstado: tipoStock, funcion: "filtrarInventario"},
                 type: "post",
                 success: function(event) {
                     $('#tabla-movimientos').html(event);

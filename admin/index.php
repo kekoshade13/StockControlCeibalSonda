@@ -58,7 +58,7 @@ if(!$connectAdmin->class == "Admin") {
                 <!-- -------------------------------------------------------------- Contenedor Principal -------------------------------------------------------------- -->
                 <div class="col-10">
                 
-                <nav class="navbar navbar-expand-lg mb-5">
+                <nav class="navbar navbar-expand-lg mb-4">
                     <div class="container">
                         <div class="collapse navbar-collapse" id="navbarSupportedContent">
                                 <ul class="navbar-nav" style="position: absolute; left: 80%; top: 5%;">
@@ -207,6 +207,16 @@ if(!$connectAdmin->class == "Admin") {
                                         <input type="text" class="form-control btnQtyAumentar" id="inputAddCantidad" name="qtyAddStock" placeholder="Ingresa la cantidad a ingresar">
                                         <small id="cantidadInfo" class="form-text text-muted" style="font-size: 18px;">Solo se aceptan valores numéricos.</small>
                                     </div>
+                                    <label for="tipoStock" class="form-label col-sm-3">Tipo de Stock</label>
+                                    <div class="col-sm-8 mb-4" id="tipoStock">
+                                        <select class="form-select" id="selectTipoStock">
+                                            <option selected value="">Tipo de stock</option>
+                                            <option value="1">Origen</option>
+                                            <option value="2">Sano</option>
+                                            <option value="3">Remanufacturados</option>
+                                            <option value="4">Free</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <input type="button" class="btn btn-success btnAumentarStock w-100 mb-2" id="buttonOper" value="Añadir Stock" />
                             </form>
@@ -236,25 +246,36 @@ if(!$connectAdmin->class == "Admin") {
                         <div class="col-8 m-2 d-none" id="addNewCode" style="display: inline-block;">
                             <form>
                                 <div class="form-group row">
-                                    <h5 class="display-5 mb-5">Añadir Nuevo Producto</h1>
+                                    <h5 class="display-5 mb-4">Añadir Nuevo Producto</h1>
                                     
                                     <label for="inputAddNewCodigo" class="form-label col-sm-3">Código: </label>
-                                    <div class="col-sm-8 mb-4">
+                                    <div class="col-sm-8 mb-3">
                                         <input type="text" class="form-control newCode" name="codeAddNew" id="inputAddNewCodigo" placeholder="Ingresa el código">
                                         <small id="codeInfo" class="form-text text-muted" style="font-size: 18px; text-align: left!important;">Solo se aceptan valores numéricos.</small>
                                     </div>
 
                                     <label for="inputNewNombre" class="form-label col-sm-3">Nombre del repuesto</label>
-                                    <div class="col-sm-8 mb-4">
+                                    <div class="col-sm-8 mb-1">
                                         <input type="text" class="form-control" id="inputNewNombre" name="qtyRemoveStock" placeholder="Ingresa el nombre del repuesto">
                                     </div>
-                                    <div class="col-sm-8 mb-4" style="margin-left: 192px;">
-                                        <select name="select_equipo" id="seleccion_Equipo" class="form-select">
-                                            <option selected value="">Selecciona el equipo</option>
-                                            <?php foreach($obtenerEquipos as $equipo): ?>
-                                            <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->name ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                    <div class="row mb-4">
+                                        <div class="col-sm-4" style="margin-left: 192px;">
+                                            <select name="select_equipo" id="seleccion_Equipo" class="form-select">
+                                                <option selected value="">Selecciona el Equipo</option>
+                                                <?php foreach($obtenerEquipos as $equipo): ?>
+                                                <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->nameEquipos ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-4 mb-3" id="selectRepComp">
+                                            <select name="select_equipoComp" id="seleccion_EquipoComp" class="form-select">
+                                                <option selected value="">Equipo Compatible</option>
+                                                <?php foreach($obtenerEquipos as $equipo): ?>
+                                                <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->nameEquipos ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        
                                     </div>
                                 </div>
                                 <input type="button" class="btn btn-success w-100 mb-2 btnAddNewRepuest" value="Añadir Nuevo Repuesto" />
@@ -265,8 +286,8 @@ if(!$connectAdmin->class == "Admin") {
                         <!-- -------------------------------------------------------------- Fin Gestion Repuestos -------------------------------------------------------------- -->
                         
                         <div class="logosCompany" style="position:absolute; bottom: 0px; right: 0px; opacity: 0.9;">
-                            <img src="assets/img/logos/logoceibal.png" alt="" width="150">
-                            <img src="assets/img/logos/logosonda.png" alt="" width="150">
+                            <img src="../assets/img/logos/logoceibal.png" alt="" width="150">
+                            <img src="../assets/img/logos/logosonda.png" alt="" width="150">
                         </div>
                     </div>
                     </center>
@@ -410,6 +431,7 @@ if(!$connectAdmin->class == "Admin") {
                 $(document).on('click', '.btnAumentarStock', function(event) {
                     var aumentCode = document.getElementById('inputAddCodigo').value;
                     var aumentQty = document.getElementById('inputAddCantidad').value;
+                    var tipoStock = document.getElementById('selectTipoStock').value;
 
                     if(aumentCode.trim() != "") {
                         if(aumentQty.trim() != "") {
@@ -424,7 +446,7 @@ if(!$connectAdmin->class == "Admin") {
                             } else {
                                 $.ajax({
                                     url: "../assets/php/inventoryClass.php",
-                                    data: { codeAument: aumentCode, cantidad: aumentQty, funcion: "aumentStock" },
+                                    data: { codeAument: aumentCode, cantidad: aumentQty, tipoEstado: tipoStock, funcion: "aumentStock" },
                                     type: "POST",
                                     dataType: "JSON",
                                     success: function(e) {
@@ -582,6 +604,7 @@ if(!$connectAdmin->class == "Admin") {
                     var newCodigo = document.getElementById('inputAddNewCodigo').value;
                     var newNameRepuest = document.getElementById('inputNewNombre').value;
                     var newRepEquipos = document.getElementById('seleccion_Equipo').value;
+                    var eqCompatible = document.getElementById('seleccion_EquipoComp').value;
 
                     if(newCodigo.trim() != "") {
                         if(newNameRepuest.trim() != "") {
@@ -594,35 +617,42 @@ if(!$connectAdmin->class == "Admin") {
                                 document.getElementById('inputAddNewCodigo').value = "";
                                 document.getElementById('inputNewNombre').value = "";
                                 } else {
-                                    $.ajax({
-                                        url: "../assets/php/inventoryClass.php",
-                                        data: {newCode: newCodigo, newNombre: newNameRepuest, newRepEquipo: newRepEquipos, funcion: "addNewRepuest"},
-                                        type: "POST",
-                                        dataType: "JSON",
-                                        success: function(e) {
-                                            var message = JSON.parse(e);
-                                            if(message == 1) {
-                                                responseMessage.classList.add('d-none');
-                                                responseMessage.classList.remove('d-none');
+                                    if(newRepEquipos != "") {
+                                        $.ajax({
+                                            url: "../assets/php/inventoryClass.php",
+                                            data: {newCode: newCodigo, newNombre: newNameRepuest, newRepEquipo: newRepEquipos, eqComp: eqCompatible, funcion: "addNewRepuest"},
+                                            type: "POST",
+                                            dataType: "JSON",
+                                            success: function(e) {
+                                                var message = JSON.parse(e);
+                                                if(message == 1) {
+                                                    responseMessage.classList.add('d-none');
+                                                    responseMessage.classList.remove('d-none');
 
-                                                responseMessage.innerHTML = "Repuesto ingresado correctamente.";
-                                                
-                                                document.getElementById('inputAddNewCodigo').value = "";
-                                                document.getElementById('inputNewNombre').value = "";
-                                            } else {
-                                                responseMessage.classList.add('d-none');
-                                                responseMessage.classList.remove('d-none');
+                                                    responseMessage.innerHTML = "Repuesto ingresado correctamente.";
+                                                    
+                                                    document.getElementById('inputAddNewCodigo').value = "";
+                                                    document.getElementById('inputNewNombre').value = "";
+                                                } else {
+                                                    responseMessage.classList.add('d-none');
+                                                    responseMessage.classList.remove('d-none');
 
-                                                responseMessage.innerHTML = "Ha ocurrido un error.";
+                                                    responseMessage.innerHTML = "Ha ocurrido un error.";
 
-                                                document.getElementById('inputAddNewCodigo').value = "";
-                                                document.getElementById('inputNewNombre').value = "";
+                                                    document.getElementById('inputAddNewCodigo').value = "";
+                                                    document.getElementById('inputNewNombre').value = "";
+                                                }
+                                            },
+                                            error: function(e) {
+                                                alert(e);
                                             }
-                                        },
-                                        error: function(e) {
-                                            alert("Paso algo");
-                                        }
-                                    });
+                                        });
+                                    } else {
+                                        messageRep.classList.remove('d-none');
+                                        messageRep.classList.remove('alert-success');
+                                        messageRep.classList.add('alert-danger');
+                                        messageRep.innerHTML = "Tienes que asignarle un equipo al repuesto.";
+                                    }
                                 }
                         } else {
                             messageRep.classList.remove('d-none');

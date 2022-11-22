@@ -24,8 +24,14 @@ if(!empty($_POST['funcion'])) {
                 $newCodigo = $_POST['newCode'];
                 $newNameCode = $_POST['newNombre'];
                 $newRepEquipo = $_POST['newRepEquipo'];
+
+                if(!empty($_POST['eqComp'])) {
+                    $eqComp = $_POST['eqComp'];
+                } else {
+                    $eqComp = "";
+                }
         
-                inventoryClass::addNewRepuesto($newCodigo, $newNameCode, $newRepEquipo);
+                inventoryClass::addNewRepuesto($newCodigo, $newNameCode, $newRepEquipo, $eqComp);
             }
             break;
         case 'reduceStock':
@@ -37,10 +43,11 @@ if(!empty($_POST['funcion'])) {
             }
             break;
         case 'aumentStock':
-            if(!empty($_POST['codeAument']) && !empty($_POST['cantidad'])) {
+            if(!empty($_POST['codeAument']) && !empty($_POST['cantidad']) && !empty($_POST['tipoEstado'])) {
                 $codeAument = $_POST['codeAument'];
                 $cantidad = $_POST['cantidad'];
-                inventoryClass::aumentarStock($codeAument, $cantidad);
+                $tipoStock = $_POST['tipoEstado'];
+                inventoryClass::aumentarStock($codeAument, $cantidad, $tipoStock);
             }
             break;
         case 'filtrarMovimientos':
@@ -72,7 +79,23 @@ if(!empty($_POST['funcion'])) {
             } else {
                 $codigo = "";
             }
-            inventoryClass::obtenerInventario($codigo);
+            if(!empty($_POST['modelo'])) {
+                $modelo = $_POST['modelo'];
+            } else {
+                $modelo = "";
+            }
+
+            if(!empty($_POST['compatible'])) {
+                $compatible = $_POST['compatible'];
+            } else {
+                $compatible = "";
+            }
+            if(!empty($_POST['tipoEstado'])) {
+                $tipoStock = $_POST['tipoEstado'];
+            } else {
+                $tipoStock = "";
+            }
+            inventoryClass::obtenerInventario($codigo, $modelo, $compatible, $tipoStock);
             break;
     }
 }
@@ -91,7 +114,7 @@ class inventoryClass {
         $this->conteo = $conteo;
     }
     
-    public static function obtenerInventario($codigo) {
+    public static function obtenerInventario($codigo, $modelo, $compatible, $tipoStock) {
         try {
             $db = getDB();
 
@@ -103,11 +126,25 @@ class inventoryClass {
 
             $registros = "SELECT SQL_CALC_FOUND_ROWS * FROM SpareParts";
 
-            if(!empty($codigo)) {
+            if(!empty($modelo)) {
+                $registros .= " as sp inner join equipos as eq on sp.id_equip=eq.id_equipo where sp.id_equip = $modelo";
+            }
+
+            if(!empty($codigo) && !empty($modelo)) {
+                $registros .= " and code = $codigo";
+            } else if(!empty($codigo)){
                 $registros .= " where code LIKE ".$codigo;
             }
 
-            $registros .= " order by name";
+            if(!empty($tipoStock) && !empty($modelo)) {
+                $registros .= " and tipostock = $tipoStock";
+            } else if(!empty($tipoStock)) {
+                $registros .= " where tipostock = $tipoStock";
+            }
+
+            if(!empty($compatible)) {
+                $registros .= " and sp.id_equip_comp";
+            }
 
             $registros = $db->prepare($registros);
 
@@ -124,14 +161,31 @@ class inventoryClass {
             <thead>
             <th>Código</th>
             <th>Nombre</th>
-            <th>Cantidad</th>
+            <th>Cantidad</th>';
+            if(!empty($compatible)) {
+                $tabla .= '<th>Compatible con</th>';
+            }
+            $tabla .= '
+            <th>Tipo de Stock</th>
             </thead><tbody>';
             foreach($registros as $reg) {
                 $tabla .= '<tr>
                     <td>'.$reg['code'].'</td>
                     <td>'.$reg['name'].'</td>
-                    <td>'.$reg['qty'].'</td>
-                    </tr>';
+                    <td>'.$reg['qty'].'</td>';
+                    if(!empty($compatible)) {
+                        $nombre = inventoryClass::obtenerUnEquipo($reg['id_equip_comp']);
+                        
+                        foreach($nombre as $name) {
+                            $tabla .= '<td>'.$name->nameEquipos.'</td>';
+                        }
+                    }
+                    $tipoStock = inventoryClass::obtenerUnTipoStock($reg['tipoStock']);
+                    foreach($tipoStock as $tStock) {
+                        $tabla .= '<td>'.$tStock->nameTipoStock.'</td>';
+                    }
+
+                    $tabla .= '</tr>';
             }
 
             $tabla .= '</tbody></table>';
@@ -178,7 +232,7 @@ class inventoryClass {
 
             $tabla = '<table class="table table-striped">
             <thead>
-            <th>Nombre</th>
+            <th>Tipo de Stock</th>
             <th>Código</th>
             <th>Movimiento</th>
             <th>Cantidad</th>
@@ -186,7 +240,7 @@ class inventoryClass {
             </thead><tbody>';
             foreach($registros as $reg) {
                 $tabla .= '<tr>
-                    <td>'.$reg['nombre'].'</td>
+                    <td>'.$reg['tipoStock'].'</td>
                     <td>'.$reg['code'].'</td>
                     <td>'.$reg['move'].'</td>
                     <td>'.$reg['qty'].'</td>
@@ -259,7 +313,7 @@ class inventoryClass {
         }
     }
 
-    public static function addNewRepuesto($code, $name, $equipo) {
+    public static function addNewRepuesto($code, $name, $equipo, $eqComp) {
         $db = getDB();
 
         try {
@@ -271,8 +325,8 @@ class inventoryClass {
             if($count > 0) {
                 echo json_encode(0);
             } else {
-                $stmt = $db->prepare("INSERT INTO SpareParts (code, name, id_equip) VALUES (?, ?, ?)");
-                $stmt->execute([$code, $name, $equipo]);
+                $stmt = $db->prepare("INSERT INTO SpareParts (code, name, id_equip, id_equip_comp, tipoStock) VALUES (?, ?, ?, ?, 1)");
+                $stmt->execute([$code, $name, $equipo, $eqComp]);
                 if($stmt) {
                     echo json_encode(1);
                 } else {
@@ -310,23 +364,86 @@ class inventoryClass {
         }
     }
 
-    public static function aumentarStock($code, $qty) {
+    public static function aumentarStock($code, $qty, $tipoStock) {
         $db = getDB();
         try {
-            $stmt = $db->prepare("UPDATE SpareParts SET qty = qty + $qty WHERE code = $code");
-            $stmt->execute();
-
             $consulta = $db->prepare("SELECT * FROM SpareParts WHERE code = ?");
             $consulta->execute([$code]);
-            $cantidad = $consulta->fetch(PDO::FETCH_OBJ);
-            if($cantidad->qty > 0) {
-                if($stmt) {
-                    echo json_encode(1);
+            $count = $consulta->rowCount();
+            $dataStock = $consulta->fetch(PDO::FETCH_OBJ);
+            if($count > 0) {
+                $verificarEstado = $db->prepare("select * from spareparts where code = ? and tipoStock = ?");
+                $verificarEstado->execute([$code, $tipoStock]);
+                $countEst = $verificarEstado->rowCount();
+
+                if($countEst > 0) {
+                    $actualizarCantidad = $db->prepare("UPDATE SpareParts SET qty = qty + $qty WHERE code = $code AND tipoStock = $tipoStock");
+                    $actualizarCantidad->execute();
+
+                    if($actualizarCantidad) {
+                        echo json_encode(1);
+                    } else {
+                        echo json_encode(0);
+                    }
                 } else {
-                    echo json_encode(0);
+                    $codigo = $dataStock->code;
+                    $name = $dataStock->name;
+                    $id_equipo = $dataStock->id_equip;
+                    $id_equipo_comp = $dataStock->id_equip_comp;
+
+                    $crearTipoStock = $db->prepare("INSERT INTO SpareParts (code, name, id_equip, id_equip_comp, tipoStock) VALUES (?, ?, ?, ?, ?)");
+                    $crearTipoStock->execute([$codigo, $name, $id_equipo, $id_equipo_comp, $tipoStock]);
+
+                    if($crearTipoStock) {
+                        $actualizarCantidad = $db->prepare("UPDATE SpareParts SET qty = qty + $qty WHERE code = $code AND tipoStock = $tipoStock");
+                        $actualizarCantidad->execute();
+                        if($actualizarCantidad) {
+                            echo json_encode(1);
+                        } else {
+                            echo json_encode(0);
+                        }
+                    } else {
+                        echo json_encode(0);
+                    }
                 }
             } else {
                 echo json_encode(0);
+            }
+        } catch(PDOException $e) {
+            echo $e->getMessage();
+        }
+    }
+
+    public static function obtenerUnEquipo($id) {
+        $db = getDB();
+        try {
+            $stmt = $db->prepare("SELECT * FROM equipos where id_equipo = ?");
+            $stmt->execute([$id]);
+
+            $count = $stmt->rowCount();
+
+            if($count > 0) {
+                $dataEquipos = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+                return $dataEquipos;
+            }
+        } catch(PDOException $e) {
+            echo $e->getMessage();
+        }
+    }
+
+    public static function obtenerUnTipoStock($id) {
+        $db = getDB();
+        try {
+            $stmt = $db->prepare("SELECT * FROM tipostock where id_stock = ?");
+            $stmt->execute([$id]);
+
+            $count = $stmt->rowCount();
+
+            if($count > 0) {
+                $dataTipoStock = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+                return $dataTipoStock;
             }
         } catch(PDOException $e) {
             echo $e->getMessage();
@@ -345,6 +462,24 @@ class inventoryClass {
                 $dataEquipos = $stmt->fetchAll(PDO::FETCH_OBJ);
 
                 return $dataEquipos;
+            }
+        } catch(PDOException $e) {
+            echo $e->getMessage();
+        }
+    }
+
+    public static function obtenerTiposStock() {
+        $db = getDB();
+        try {
+            $stmt = $db->prepare("SELECT * FROM tipostock");
+            $stmt->execute();
+
+            $count = $stmt->rowCount();
+
+            if($count > 0) {
+                $dataTipoStock = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+                return $dataTipoStock;
             }
         } catch(PDOException $e) {
             echo $e->getMessage();
