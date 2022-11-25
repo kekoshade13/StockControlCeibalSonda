@@ -62,7 +62,7 @@ if($_SESSION['sesion_exito'] != 1) {
                         <h5 class="card-header">Filtros</h5>
                         <div class="card-body">
                         <label for="codigoRep">Respuesto</label>
-                        <input type="text" class="form-control w-50 d-inline-block mb-3" id="codigoRep"placeholder="Código" />
+                        <input type="text" class="form-control w-50 d-inline-block mb-3" id="codigoRep" placeholder="Código" />
                         <select id="selectEquipos" class="form-select mb-3">
                             <option selected class="disabled" value="">Selecciona el equipo</option>
                             <?php foreach($obtenerEquipos as $equipo): ?>
@@ -96,6 +96,14 @@ if($_SESSION['sesion_exito'] != 1) {
 </div>
 
 <script>
+    
+    jQuery(document).ready(function(){
+            // Listen for the input event.
+            jQuery("#codigoRep").on('input', function (evt) {
+                // Allow only numbers.
+                jQuery(this).val(jQuery(this).val().replace(/[^0-9]/g, ''));
+            });
+    });
     $.ajax({
         url: 'assets/php/inventoryClass.php',
         data: {funcion: "filtrarInventario"},

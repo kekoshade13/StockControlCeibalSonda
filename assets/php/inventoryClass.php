@@ -6,18 +6,20 @@ if(!empty($_POST['funcion'])) {
 
     switch($_POST['funcion']) {
         case "consumirRepuestos":
-            if(!empty($_POST['name']) && !empty($_POST['code'])) {
+            if(!empty($_POST['name']) && !empty($_POST['code']) && !empty($_POST['tipoEstado'])) {
                 $usuario = $_POST['name'];
                 $codigo = $_POST['code'];
+                $tipoEstado = $_POST['tipoEstado'];
             }
-            inventoryClass::consumirRepuestos($codigo, $usuario);
+            inventoryClass::consumirRepuestos($codigo, $usuario, $tipoEstado);
             break;
         case "devolverRepuestos":
-            if(!empty($_POST['name']) && !empty($_POST['code'])) {
+            if(!empty($_POST['name']) && !empty($_POST['code']) && !empty($_POST['tipoEstado'])) {
                 $usuario1 = $_POST['name'];
                 $codigo1 = $_POST['code'];
+                $tipoStock1 = $_POST['tipoEstado'];
             }
-            inventoryClass::devolverRepuestos($codigo1, $usuario1);
+            inventoryClass::devolverRepuestos($codigo1, $usuario1, $tipoStock1);
             break;
         case 'addNewRepuest':
             if(!empty($_POST['newCode']) && !empty($_POST['newNombre']) && !empty($_POST['newRepEquipo'])) {
@@ -199,12 +201,6 @@ class inventoryClass {
         try {
             $db = getDB();
 
-            self::$pagina = isset($_GET['pag']) ? (int)$_GET['pag'] : 1;
-
-            self::$productosPorPagina = 8;
-
-            $inicio  = (self::$pagina>1) ? ((self::$pagina * self::$productosPorPagina)-self::$productosPorPagina) : 0;
-
             $registros = "SELECT SQL_CALC_FOUND_ROWS * FROM Movements WHERE nombre = ?";
 
             if(!empty($fechaI)) {
@@ -225,24 +221,21 @@ class inventoryClass {
 
             $registros = $registros->fetchAll();
 
-            self::$conteo = $db->query("SELECT FOUND_ROWS() as total");
-            self::$conteo = self::$conteo->fetch()['total'];
-
-            self::$paginas = ceil(self::$conteo / self::$productosPorPagina);
-
             $tabla = '<table class="table table-striped">
             <thead>
-            <th>Tipo de Stock</th>
             <th>Código</th>
+            <th>Tipo de Stock</th>
             <th>Movimiento</th>
             <th>Cantidad</th>
             <th>Fecha</th>
             </thead><tbody>';
             foreach($registros as $reg) {
-                $tabla .= '<tr>
-                    <td>'.$reg['tipoStock'].'</td>
-                    <td>'.$reg['code'].'</td>
-                    <td>'.$reg['move'].'</td>
+                $tabla .= '<tr><td>'.$reg['code'].'</td>';
+                $obtenerTipoStock = inventoryClass::obtenerUnTipoStock($reg['tipoStock']);
+                foreach($obtenerTipoStock as $tipoStock) {
+                    $tabla .= '<td>'.$tipoStock->nameTipoStock.'</td>';
+                }
+                $tabla .= '<td>'.$reg['move'].'</td>
                     <td>'.$reg['qty'].'</td>
                     <td>'.$reg['date'].'</td>
                     </tr>';
@@ -255,7 +248,7 @@ class inventoryClass {
         }
     }
 
-    public static function consumirRepuestos($codigo, $nombre) {
+    public static function consumirRepuestos($codigo, $nombre, $tipoStock) {
         $db = getDB();
         try {
             $stmt = $db->prepare("SELECT * FROM spareparts where code = ?");
@@ -265,11 +258,11 @@ class inventoryClass {
             $cantidad = $stmt->fetch(PDO::FETCH_OBJ);
             if($count > 0) {
                 if($cantidad->qty > 0) {
-                    $update = $db->prepare("UPDATE spareparts SET qty = qty - 1 where code = ?");
-                    $update->execute([$codigo]);
+                    $update = $db->prepare("UPDATE spareparts SET qty = qty - 1 where code = ? AND tipoStock = ?");
+                    $update->execute([$codigo, $tipoStock]);
 
-                    $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, date) VALUES
-                    ('$nombre', '$codigo', 'Salida', 1, current_timestamp())");
+                    $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, tipoStock, date) VALUES
+                    ('$nombre', '$codigo', 'Salida', 1, '$tipoStock', current_timestamp())");
                     $movement->execute();
                     echo json_encode(1);
                 } else {
@@ -283,7 +276,7 @@ class inventoryClass {
         }
     }
 
-    public static function devolverRepuestos($codigo, $nombre) {
+    public static function devolverRepuestos($codigo, $nombre, $tipoStock) {
         $db = getDB();
         try {
             $stmt = $db->prepare("SELECT * FROM spareparts where code = ?");
@@ -293,12 +286,12 @@ class inventoryClass {
             $cantidad = $stmt->fetch(PDO::FETCH_OBJ);
             if($count > 0) {
                 if($cantidad->qty >= 0) {
-                    $update = $db->prepare("UPDATE spareparts SET qty = qty + 1 where code = ?");
-                    $update->execute([$codigo]);
+                    $update = $db->prepare("UPDATE spareparts SET qty = qty + 1 where code = ? AND tipoStock = ?");
+                    $update->execute([$codigo, $tipoStock]);
 
                     if($update) {
-                        $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, date) VALUES
-                        ('$nombre', '$codigo', 'Entrada', 1, current_timestamp())");
+                        $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, tipoStock, date) VALUES
+                        ('$nombre', '$codigo', 'Entrada', 1, '$tipoStock', current_timestamp())");
                         $movement->execute();
                         echo json_encode(1);
                     }

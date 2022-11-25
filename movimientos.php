@@ -94,6 +94,14 @@ if($_SESSION['sesion_exito'] != 1) {
 </div>
 
 <script>
+    
+    jQuery(document).ready(function(){
+            // Listen for the input event.
+            jQuery("#codigoRep").on('input', function (evt) {
+                // Allow only numbers.
+                jQuery(this).val(jQuery(this).val().replace(/[^0-9]/g, ''));
+            });
+        });
     var user = "<?php echo $dataUser->nombre_u; ?>";
     $.ajax({
         url: 'assets/php/inventoryClass.php',

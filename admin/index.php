@@ -155,7 +155,7 @@ if(!$connectAdmin->class == "Admin") {
                             </form>
                         </div>
 
-                        <div class="col-8 m-2 d-none" id="mostrarUser" style="display: inline-block;">
+                        <div class="col-8 m-2 d-none" id="mostrarUser" style="display: inline-block; height: 400px; overflow-y: scroll;">
                         <table class="table table-striped">
                             <thead>
                                 <tr>

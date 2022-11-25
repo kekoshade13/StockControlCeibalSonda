@@ -1,9 +1,11 @@
 <?php 
 include 'assets/php/userClass.php';
+include 'assets/php/inventoryClass.php';
 if($_SESSION['sesion_exito'] != 1) {
     header('Location: login.php');
 } else {
     $dataUser = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
+    $obtenerTipoStock = inventoryClass::obtenerTiposStock();
 }
 
 ?>
@@ -51,19 +53,31 @@ if($_SESSION['sesion_exito'] != 1) {
                         
                         <!-- -------------------------------------------------------------- Consumo Repuestos -------------------------------------------------------------- -->
                         
-                        <div class="col-6 m-2 d-none" id="consumirRepuesto" style="display: inline-block;">
+                        <div class="col-7 m-2 d-none" id="consumirRepuesto" style="display: inline-block;">
                             <form id="consumirForm">
                                 <div class="form-group row">
-                                    <label for="staticEmail" class="col-sm-2 col-form-label">Usuario</label>
-                                    <div class="col-sm-10 mb-4">
+                                    <label for="staticEmail" class="col-sm-3 col-form-label">Usuario</label>
+                                    <div class="col-sm-9 mb-4">
                                     <input type="text" readonly class="form-control-plaintext" name="nombre" id="staticName" value="<?php echo $dataUser->nombre_u; ?>">
                                     </div>
                                 </div>
                                 <div class="form-group row">
-                                     <label for="inputRepuesto" class="col-sm-2 col-form-label">Repuesto</label>
-                                    <div class="col-sm-10 mb-5">
-                                    <input type="text" class="form-control" id="inputRepuesto" name="code" placeholder="Código del repuesto" pattern="[0,9]">
+                                     <label for="inputRepuesto" class="col-sm-3 col-form-label mr-5">Repuesto</label>
+                                    <div class="col-sm-9 mb-3">
+                                    <input type="text" class="form-control codeConsum" id="inputRepuesto" name="code" placeholder="Código del repuesto" pattern="[0,9]">
                                     </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="selectTipoStock" class="col-sm-3 col-form-label mr-5">Tipo de Stock</label>
+                                    <div class="col-sm-9 mb-5">
+                                        <select class="form-select" id="selectTipoStock">
+                                            <option value="" selected>Selecciona el tipo de Stock</option>
+                                            <?php foreach($obtenerTipoStock as $tipoStock) { ?>
+                                                <option value="<?php echo $tipoStock->id_stock ?>"><?php echo $tipoStock->nameTipoStock ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
+
                                 </div>
                                 <input type="button" class="btn btn-success consumRep w-100" id="buttonOper" value="Consumir Repuesto" />
                             </form>
@@ -88,12 +102,20 @@ if($_SESSION['sesion_exito'] != 1) {
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/popper.min.js"></script>
     <script>
+        jQuery(document).ready(function(){
+            // Listen for the input event.
+            jQuery("#inputRepuesto").on('input', function (evt) {
+                // Allow only numbers.
+                jQuery(this).val(jQuery(this).val().replace(/[^0-9]/g, ''));
+            });
+        });
         var messageRep = document.getElementById('messageRep');
 
         $(document).on('click', '.consumRep', function(e) {
             var tipoOperacion = document.getElementById("resultadoConsumo");
             var codigo = document.getElementById("inputRepuesto").value;
             var nombre = document.getElementById("staticName").value;
+            var tipoStock = document.getElementById('selectTipoStock').value;
 
             if(tipoOperacion.innerHTML == "Consumir Repuestos") {
                 messageRep.classList.add('d-none');
@@ -107,7 +129,7 @@ if($_SESSION['sesion_exito'] != 1) {
                     } else {
                         $.ajax({
                             url: "assets/php/inventoryClass.php",
-                            data: {name: nombre, code: codigo, funcion: "consumirRepuestos"},
+                            data: {name: nombre, code: codigo, tipoEstado: tipoStock, funcion: "consumirRepuestos"},
                             type: "post",
                             dataType: "json",
                             success: function(e) {
@@ -140,6 +162,8 @@ if($_SESSION['sesion_exito'] != 1) {
             } else if(tipoOperacion.innerHTML == "Devolver Repuestos") {
                 var codigo = document.getElementById("inputRepuesto").value;
                 var nombre = document.getElementById("staticName").value;
+                var tipoStock = document.getElementById('selectTipoStock').value;
+
                 if(codigo != "") {
                     if(codigo.length < 6 || codigo.length > 6) {
                         messageRep.classList.remove('d-none');
@@ -150,7 +174,7 @@ if($_SESSION['sesion_exito'] != 1) {
                     } else {
                         $.ajax({
                             url: "assets/php/inventoryClass.php",
-                            data: {name: nombre, code: codigo, funcion: "devolverRepuestos"},
+                            data: {name: nombre, code: codigo, tipoEstado: tipoStock, funcion: "devolverRepuestos"},
                             type: "POST",
                             dataType: "JSON",
                             success: function(e) {

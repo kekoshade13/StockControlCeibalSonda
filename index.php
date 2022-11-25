@@ -8,7 +8,7 @@ if($_SESSION['sesion_exito'] != 1) {
 ?>
 
 <!DOCTYPE html>
-
+<!-- CUALQUIER PARECIDO CON EL TILO ES MERA COINCIDENCIA -->
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -35,11 +35,12 @@ if($_SESSION['sesion_exito'] != 1) {
                         <?php
                             if($dataUser) {
                             ?>
-                                <p class="h1 display-4">Bienvenido <?php echo  $dataUser->nombre;?></p>
+                                <p class="h1 display-4">Bienvenido/a <?php echo  $dataUser->nombre;?></p>
                             <?php
                             }
                         ?>
                     </div>
+
                     <div class="logosCompany" style="position:absolute; bottom: 0px; right: 0px; opacity: 0.9;">
                         <img src="assets/img/logos/logoceibal.png" alt="" width="150">
                         <img src="assets/img/logos/logosonda.png" alt="" width="150">

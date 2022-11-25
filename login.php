@@ -3,7 +3,7 @@ include 'assets/php/userClass.php';
 
 if(isset($_SESSION['sesion_exito']) != 0) {
     $dataUser = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
-    header("Location: index.php?id=$dataUser->id_user");
+    header("Location: index.php");
 }
 ?>
 <!DOCTYPE html>
