@@ -9,6 +9,7 @@ if(!$connectAdmin->class == "Admin") {
     $listaUsuarios = userClass::obtenerUsuarios();
     $obtenerEquipos = inventoryClass::obtenerEquipos();
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -238,6 +239,16 @@ if(!$connectAdmin->class == "Admin") {
                                         <input type="text" class="form-control qtyDelete" id="inputRemoveCantidad" name="qtyRemoveStock" placeholder="Ingresa la cantidad a reducir">
                                         <small id="cantidadInfo" class="form-text text-muted" style="font-size: 18px;">Solo se aceptan valores numéricos.</small>
                                     </div>
+                                    <label for="tipoStockDevo" class="form-label col-sm-3">Tipo de Stock</label>
+                                    <div class="col-sm-8 mb-4" id="tipoStockDevo">
+                                        <select class="form-select" id="selectTipoStockDevo">
+                                            <option selected value="">Tipo de stock</option>
+                                            <option value="1">Origen</option>
+                                            <option value="2">Sano</option>
+                                            <option value="3">Remanufacturados</option>
+                                            <option value="4">Free</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <input type="button" class="btn btn-danger btnReducirStock w-100 mb-2" value="Reducir Stock" />
                             </form>
@@ -348,11 +359,32 @@ if(!$connectAdmin->class == "Admin") {
                 document.getElementById('resultadoGestionU').innerHTML = "Añadir Usuarios";
                 formMostrarUser.classList.add('d-none');
                 formAddUser.classList.remove('d-none');
-                $(function(){
-                    $(".val").keydown(function(event){
-                        if((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || eventkeyCode > 105) && event.keyCode !==190  && event.keyCode !==110 && event.keyCode!==8 && event.keyCode !==9  ){
-                            return false;
-                        }
+                jQuery(document).ready(function(){
+                    // Listen for the input event.
+                    jQuery("#inputCedula").on('input', function (evt) {
+                        // Allow only numbers.
+                        jQuery(this).val(jQuery(this).val().replace(/[^0-9]/g, ''));
+                    });
+                });
+                jQuery(document).ready(function(){
+                    // Listen for the input event.
+                    jQuery("#inputUsuario").on('input', function (evt) {
+                        // Allow only numbers.
+                        jQuery(this).val(jQuery(this).val().replace(/[^a-zA-Z]/g, ''));
+                    });
+                });
+                jQuery(document).ready(function(){
+                    // Listen for the input event.
+                    jQuery("#inputNombre").on('input', function (evt) {
+                        // Allow only numbers.
+                        jQuery(this).val(jQuery(this).val().replace(/[^a-zA-Z]/g, ''));
+                    });
+                });
+                jQuery(document).ready(function(){
+                    // Listen for the input event.
+                    jQuery("#inputApellido").on('input', function (evt) {
+                        // Allow only numbers.
+                        jQuery(this).val(jQuery(this).val().replace(/[^a-zA-Z]/g, ''));
                     });
                 });
 
@@ -369,26 +401,33 @@ if(!$connectAdmin->class == "Admin") {
                     }
 
                     if(nombre.trim() != "" && apellido.trim() != "" && nombreUser.trim() != "" && contrasenia.trim() != "" && cedula.trim() != "") {
-                        $.ajax({
-                            url: "../assets/php/userClass.php",
-                            data: {name: nombre, lastname: apellido, nombre_u: nombreUser, password: contrasenia, ci: cedula, class: isAdmin, funcion: "addUser"},
-                            type: "POST",
-                            dataType: "JSON",
-                            success: function(e) {
-                                var message = JSON.parse(e);
-                                if(message == 1) {
-                                    responseMessage.classList.remove('d-none');
-                                    responseMessage.innerHTML = "Usuario ingresado correctamente.";
-                                    window.location.reload(true);
-                                } else if(message == 0) {
-                                    responseMessage.classList.remove('d-none');
-                                    responseMessage.innerHTML = "El usuario ya se encuentra en uso.";
-                                } else if(message == 2) {
-                                    responseMessage.classList.remove('d-none');
-                                    responseMessage.innerHTML = "El Documento ("+cedula+") se encuentra en uso";
+                        if(cedula.length < 8 || cedula.length > 8) {
+                            responseMessage.classList.remove('d-none');
+                            responseMessage.classList.remove('alert-success');
+                            responseMessage.classList.add('alert-danger');
+                            responseMessage.innerHTML = "¡La cedula tiene que contener 8 digitos!.";
+                        } else {
+                            $.ajax({
+                                url: "../assets/php/userClass.php",
+                                data: {name: nombre, lastname: apellido, nombre_u: nombreUser, password: contrasenia, ci: cedula, class: isAdmin, funcion: "addUser"},
+                                type: "POST",
+                                dataType: "JSON",
+                                success: function(e) {
+                                    var message = JSON.parse(e);
+                                    if(message == 1) {
+                                        responseMessage.classList.remove('d-none');
+                                        responseMessage.innerHTML = "Usuario ingresado correctamente.";
+                                        window.location.reload(true);
+                                    } else if(message == 0) {
+                                        responseMessage.classList.remove('d-none');
+                                        responseMessage.innerHTML = "El usuario ya se encuentra en uso.";
+                                    } else if(message == 2) {
+                                        responseMessage.classList.remove('d-none');
+                                        responseMessage.innerHTML = "El Documento ("+cedula+") se encuentra en uso";
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
                     } else {
                         responseMessage.classList.remove('d-none');
                         responseMessage.classList.remove('alert-success');
@@ -413,18 +452,18 @@ if(!$connectAdmin->class == "Admin") {
                 formAddNewProduct.classList.add('d-none');
                 formAddStock.classList.remove('d-none');
 
-                $(function(){
-                    $(".btnQtyAumentar").keydown(function(event){
-                        if((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || eventkeyCode > 105) && event.keyCode !==190  && event.keyCode !==110 && event.keyCode!==8 && event.keyCode !==9  ){
-                            return false;
-                        }
+                jQuery(document).ready(function(){
+                    // Listen for the input event.
+                    jQuery(".btnQtyAumentar").on('input', function (evt) {
+                        // Allow only numbers.
+                        jQuery(this).val(jQuery(this).val().replace(/[^0-9]/g, ''));
                     });
                 });
-                $(function(){
-                    $(".btnCodeAumentar").keydown(function(event){
-                        if((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || eventkeyCode > 105) && event.keyCode !==190  && event.keyCode !==110 && event.keyCode!==8 && event.keyCode !==9  ){
-                            return false;
-                        }
+                jQuery(document).ready(function(){
+                    // Listen for the input event.
+                    jQuery(".btnCodeAumentar").on('input', function (evt) {
+                        // Allow only numbers.
+                        jQuery(this).val(jQuery(this).val().replace(/[^0-9]/g, ''));
                     });
                 });
 
@@ -501,24 +540,26 @@ if(!$connectAdmin->class == "Admin") {
                 formAddNewProduct.classList.add('d-none');
                 formAddStock.classList.add('d-none');
                 formReducirStock.classList.remove('d-none');
-                $(function(){
-                    $(".qtyDelete").keydown(function(event){
-                        if((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || eventkeyCode > 105) && event.keyCode !==190  && event.keyCode !==110 && event.keyCode!==8 && event.keyCode !==9  ){
-                            return false;
-                        }
+                jQuery(document).ready(function(){
+                    // Listen for the input event.
+                    jQuery(".qtyDelete").on('input', function (evt) {
+                        // Allow only numbers.
+                        jQuery(this).val(jQuery(this).val().replace(/[^0-9]/g, ''));
                     });
                 });
-                $(function(){
-                    $(".codeDelete").keydown(function(event){
-                        if((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || eventkeyCode > 105) && event.keyCode !==190  && event.keyCode !==110 && event.keyCode!==8 && event.keyCode !==9  ){
-                            return false;
-                        }
+                jQuery(document).ready(function(){
+                    // Listen for the input event.
+                    jQuery(".codeDelete").on('input', function (evt) {
+                        // Allow only numbers.
+                        jQuery(this).val(jQuery(this).val().replace(/[^0-9]/g, ''));
                     });
                 });
 
                 $(document).on('click', '.btnReducirStock', function(event) {
                     var codeDelete = document.getElementById('inputRemoveCodigo').value;
                     var qtyDelete = document.getElementById('inputRemoveCantidad').value;
+                    var tipoStockDevo = document.getElementById('selectTipoStockDevo').value;
+
                     if(codeDelete.trim() != "") {
                         if(qtyDelete.trim() != "") {
                             if(codeDelete.length < 6 || codeDelete.length > 6) {
@@ -530,42 +571,53 @@ if(!$connectAdmin->class == "Admin") {
                                 document.getElementById('inputRemoveCodigo').value = "";
                                 document.getElementById('inputRemoveCantidad').value = "";
                             } else {
-                                $.ajax({
-                                    url: "../assets/php/inventoryClass.php",
-                                    data: { deleteCode: codeDelete, cantDelete: qtyDelete, funcion: "reduceStock" },
-                                    type: "POST",
-                                    dataType: "JSON",
-                                    success: function(e) {
-                                        var message = JSON.parse(e);
-                                        if(message == 1) {
-                                            responseMessage.classList.add('d-none');
-                                            responseMessage.classList.remove('d-none');
+                                if(tipoStockDevo != "") {
+                                    $.ajax({
+                                        url: "../assets/php/inventoryClass.php",
+                                        data: { deleteCode: codeDelete, cantDelete: qtyDelete, tipoStock: tipoStockDevo, funcion: "reduceStock" },
+                                        type: "POST",
+                                        dataType: "JSON",
+                                        success: function(e) {
+                                            var message = JSON.parse(e);
+                                            if(message == 1) {
+                                                responseMessage.classList.add('d-none');
+                                                responseMessage.classList.remove('d-none');
 
-                                            responseMessage.innerHTML = "Se ha actualizado el stock.";
+                                                responseMessage.innerHTML = "Se ha actualizado el stock.";
 
-                                            document.getElementById('inputRemoveCodigo').value = "";
-                                            document.getElementById('inputRemoveCantidad').value = "";
-                                        } else if(e == 2) {
-                                            responseMessage.classList.add('d-none');
-                                            responseMessage.classList.remove('d-none');
-                                            messageRep.classList.add('alert-danger');
-                                            
-                                            responseMessage.innerHTML = "El stock no cuenta con la cantidad que deseas reducir.";
-                                            
-                                            document.getElementById('inputRemoveCodigo').value = "";
-                                            document.getElementById('inputRemoveCantidad').value = "";
-                                        } else {
-                                            responseMessage.classList.add('d-none');
-                                            responseMessage.classList.remove('d-none');
-                                            messageRep.classList.add('alert-danger');
+                                                document.getElementById('inputRemoveCodigo').value = "";
+                                                document.getElementById('inputRemoveCantidad').value = "";
+                                            } else if(e == 2) {
+                                                responseMessage.classList.add('d-none');
+                                                responseMessage.classList.remove('d-none');
+                                                messageRep.classList.add('alert-danger');
+                                                
+                                                responseMessage.innerHTML = "El stock no cuenta con la cantidad que deseas reducir.";
+                                                
+                                                document.getElementById('inputRemoveCodigo').value = "";
+                                                document.getElementById('inputRemoveCantidad').value = "";
+                                            } else {
+                                                responseMessage.classList.add('d-none');
+                                                responseMessage.classList.remove('d-none');
+                                                messageRep.classList.add('alert-danger');
 
-                                            responseMessage.innerHTML = "Ha ocurrido un error.";
-                                            
-                                            document.getElementById('inputRemoveCodigo').value = "";
-                                            document.getElementById('inputRemoveCantidad').value = "";
+                                                responseMessage.innerHTML = "Ha ocurrido un error.";
+                                                
+                                                document.getElementById('inputRemoveCodigo').value = "";
+                                                document.getElementById('inputRemoveCantidad').value = "";
+                                            }
                                         }
-                                    }
-                                });
+                                    });
+                                } else {
+                                    messageRep.classList.remove('d-none');
+                                    messageRep.classList.remove('alert-success');
+                                    messageRep.classList.add('alert-danger');
+                                    messageRep.innerHTML = "Tienes que asignar el tipo de stock.";
+                                    
+                                    document.getElementById('inputRemoveCodigo').value = "";
+                                    document.getElementById('inputRemoveCantidad').value = "";
+                                }
+                                
                             }
                         } else {
                             messageRep.classList.remove('d-none');
@@ -593,11 +645,11 @@ if(!$connectAdmin->class == "Admin") {
                 formReducirStock.classList.add('d-none');
                 formAddStock.classList.add('d-none');
                 formAddNewProduct.classList.remove('d-none');
-                $(function(){
-                    $(".newCode").keydown(function(event){
-                        if((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || eventkeyCode > 105) && event.keyCode !==190  && event.keyCode !==110 && event.keyCode!==8 && event.keyCode !==9  ){
-                            return false;
-                        }
+                jQuery(document).ready(function(){
+                    // Listen for the input event.
+                    jQuery(".newCode").on('input', function (evt) {
+                        // Allow only numbers.
+                        jQuery(this).val(jQuery(this).val().replace(/[^0-9]/g, ''));
                     });
                 });
                 $(document).on('click', '.btnAddNewRepuest', function(event) {

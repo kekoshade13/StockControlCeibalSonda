@@ -2,7 +2,6 @@
 include_once('assets/php/connection.php');
 include 'assets/php/userClass.php';
 include_once('assets/php/inventoryClass.php');
-$pagina = 1;
 if($_SESSION['sesion_exito'] != 1) {
     header('Location: login.php');
 } else {
@@ -64,7 +63,7 @@ if($_SESSION['sesion_exito'] != 1) {
                         <label for="codigoRep">Respuesto</label>
                         <input type="text" class="form-control w-50 d-inline-block mb-3" id="codigoRep" placeholder="Código" />
                         <select id="selectEquipos" class="form-select mb-3">
-                            <option selected class="disabled" value="">Selecciona el equipo</option>
+                            <option value="" selected>Selecciona el modelo</option>
                             <?php foreach($obtenerEquipos as $equipo): ?>
                             <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->nameEquipos ?></option>
                             <?php endforeach; ?>
@@ -135,6 +134,8 @@ if($_SESSION['sesion_exito'] != 1) {
             var repCompatible = "";
             if($('#CheckCompatiblesR').is(':checked')) {
                 repCompatible = "Si";
+            } else {
+                repCompatible = "";
             }
 
             $.ajax({

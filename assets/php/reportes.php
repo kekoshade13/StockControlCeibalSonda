@@ -24,7 +24,17 @@ try {
         $encabezado1 = ["Código del repuesto", "Cantidad"];
         $hojaDeProductos->fromArray($encabezado1, null, 'A2');
 
-        $hojaDeProductos->setCellValue('C1', 'Entrada');
+        $encabezadoEntrada = ['Entrada'];
+        $hojaDeProductos->fromArray($encabezadoEntrada, null, 'D1');
+        $encabezadoEntrada1 = ['Código del repuesto', 'Cantidad'];
+        $hojaDeProductos->fromArray($encabezadoEntrada1, null, 'D2');
+
+
+        $cabezaTilo = ['Consumo de Tilo'];
+        $hojaDeProductos->fromArray($cabezaTilo, null, 'G1');
+        $cabezaTilo2 = ['Repuesto', 'Cantidad'];
+        $hojaDeProductos->fromArray($cabezaTilo2, null, 'G2');
+
 
         $nombre = $_POST['select_usuario'];
         $fechaIni = "";
@@ -72,9 +82,25 @@ try {
 
         $numeroDeFila1 = 3;
         while($res1 = $stmt1->fetch(PDO::FETCH_OBJ)) {
-            $hojaDeProductos->setCellValueByColumnAndRow(3, $numeroDeFila1, $res1->cantidad);
-            $hojaDeProductos->setCellValueByColumnAndRow(4, $numeroDeFila1, $res1->code);
+            $hojaDeProductos->setCellValueByColumnAndRow(4, $numeroDeFila1, $res1->cantidad);
+            $hojaDeProductos->setCellValueByColumnAndRow(5, $numeroDeFila1, $res1->code);
             $numeroDeFila1++;
+        }
+
+        $sqlTilo = "select distinct CodRep, sum(qty) as Cantidad
+        from SpendingTiloReps
+        where usu ='$nombre'
+        group by CodRep
+        order by CodRep asc";
+
+        $stmt2 = $db->prepare($sqlTilo);
+        $stmt2->execute();
+
+        $numeroDeFila2 = 3;
+        while($res2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+            $hojaDeProductos->setCellValueByColumnAndRow(7, $numeroDeFila2, $res2->CodRep);
+            $hojaDeProductos->setCellValueByColumnAndRow(8, $numeroDeFila2, $res2->Cantidad);
+            $numeroDeFila2++;
         }
 
         $fileName="consumoSalidaYEntradaStock.xlsx";

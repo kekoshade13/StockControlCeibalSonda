@@ -45,6 +45,7 @@ class  userClass {
                 if(password_verify($contrasenia, $data->pass)) {
                     $_SESSION['uid'] = $data->id_user;
                     $_SESSION['sesion_exito'] = 1;
+                    $_SESSION['hora']=time(); 
                     return $_SESSION['uid'];
                 } else {
                     return false;

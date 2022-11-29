@@ -97,6 +97,7 @@ if(!$connectAdmin->class == "Admin") {
                             </div>                          
 
                             <input type="submit" value="Descargar Reporte" name="btnDownload" class="btn btn-outline-info text-dark">
+                            <a href="../assets/planillaReporteStock.xlsx" class="btn btn-outline-info text-dark">Descargar Planilla Base</a>
                         </form>
                     </div>
                         

@@ -37,11 +37,12 @@ if(!empty($_POST['funcion'])) {
             }
             break;
         case 'reduceStock':
-            if(!empty($_POST['deleteCode']) && !empty($_POST['cantDelete'])) {
+            if(!empty($_POST['deleteCode']) && !empty($_POST['cantDelete']) && !empty($_POST['tipoStock'])) {
                 $codeDelete = $_POST['deleteCode'];
                 $cantDelete = $_POST['cantDelete'];
+                $tipoStock = $_POST['tipoStock'];
 
-                inventoryClass::reducirStock($codeDelete, $cantDelete);
+                inventoryClass::reducirStock($codeDelete, $cantDelete, $tipoStock);
             }
             break;
         case 'aumentStock':
@@ -251,8 +252,8 @@ class inventoryClass {
     public static function consumirRepuestos($codigo, $nombre, $tipoStock) {
         $db = getDB();
         try {
-            $stmt = $db->prepare("SELECT * FROM spareparts where code = ?");
-            $stmt->execute([$codigo]);
+            $stmt = $db->prepare("SELECT * FROM spareparts where code = ? and tipoStock = ?");
+            $stmt->execute([$codigo, $tipoStock]);
             
             $count = $stmt->rowCount();
             $cantidad = $stmt->fetch(PDO::FETCH_OBJ);
@@ -331,20 +332,44 @@ class inventoryClass {
         }
     }
 
-    public static function reducirStock($code, $qty) {
+    public static function reducirStock($code, $qty, $tipoStock) {
         $db = getDB();
         try {
             $consulta = $db->prepare("SELECT * FROM SpareParts WHERE code = ?");
             $consulta->execute([$code]);
-            $cantidad = $consulta->fetch(PDO::FETCH_OBJ);
-            if($cantidad->qty > 0) {
-                if($qty > $cantidad->qty) {
-                    echo json_encode(2);
-                } else {
-                    $stmt = $db->prepare("UPDATE SpareParts SET qty = qty - $qty WHERE code = $code");
-                    $stmt->execute();
-                    if($stmt) {
+            $count = $consulta->rowCount();
+            $dataStock = $consulta->fetch(PDO::FETCH_OBJ);
+            if($count > 0) {
+                $verificarEstado = $db->prepare("select * from spareparts where code = ? and tipoStock = ?");
+                $verificarEstado->execute([$code, $tipoStock]);
+                $countEst = $verificarEstado->rowCount();
+
+                if($countEst > 0) {
+                    $actualizarCantidad = $db->prepare("UPDATE SpareParts SET qty = qty - $qty WHERE code = $code AND tipoStock = $tipoStock");
+                    $actualizarCantidad->execute();
+
+                    if($actualizarCantidad) {
                         echo json_encode(1);
+                    } else {
+                        echo json_encode(0);
+                    }
+                } else {
+                    $codigo = $dataStock->code;
+                    $name = $dataStock->name;
+                    $id_equipo = $dataStock->id_equip;
+                    $id_equipo_comp = $dataStock->id_equip_comp;
+
+                    $crearTipoStock = $db->prepare("INSERT INTO SpareParts (code, name, id_equip, id_equip_comp, tipoStock) VALUES (?, ?, ?, ?, ?)");
+                    $crearTipoStock->execute([$codigo, $name, $id_equipo, $id_equipo_comp, $tipoStock]);
+
+                    if($crearTipoStock) {
+                        $actualizarCantidad = $db->prepare("UPDATE SpareParts SET qty = qty - $qty WHERE code = $code AND tipoStock = $tipoStock");
+                        $actualizarCantidad->execute();
+                        if($actualizarCantidad) {
+                            echo json_encode(1);
+                        } else {
+                            echo json_encode(0);
+                        }
                     } else {
                         echo json_encode(0);
                     }
