@@ -76,6 +76,9 @@ if(!empty($_POST['funcion'])) {
             }
             inventoryClass::obtenerMovimientos($nombre, $fechaI, $fechaF, $code);
             break;
+        case 'filtrarMovimientosGenerales':
+            inventoryClass::obtenerMovimientosGenerales();
+            break;
         case 'filtrarInventario':
             if(!empty($_POST['code'])) {
                 $codigo = $_POST['code'];
@@ -127,7 +130,7 @@ class inventoryClass {
 
             $inicio  = (self::$pagina>1) ? ((self::$pagina * self::$productosPorPagina)-self::$productosPorPagina) : 0;
 
-            $registros = "SELECT SQL_CALC_FOUND_ROWS * FROM SpareParts";
+            $registros = "SELECT * FROM SpareParts";
 
             if(!empty($modelo)) {
                 $registros .= " as sp inner join equipos as eq on sp.id_equip=eq.id_equipo where sp.id_equip = $modelo";
@@ -136,17 +139,21 @@ class inventoryClass {
             if(!empty($codigo) && !empty($modelo)) {
                 $registros .= " and code = $codigo";
             } else if(!empty($codigo)){
-                $registros .= " where code LIKE ".$codigo;
+                $registros .= " where code = ".$codigo;
             }
 
             if(!empty($tipoStock) && !empty($modelo)) {
+                $registros .= " and tipostock = $tipoStock";
+            } else if(!empty($tipoStock) && !empty($codigo)) {
                 $registros .= " and tipostock = $tipoStock";
             } else if(!empty($tipoStock)) {
                 $registros .= " where tipostock = $tipoStock";
             }
 
-            if(!empty($compatible)) {
+            if(!empty($compatible) && !empty($modelo)) {
                 $registros .= " and sp.id_equip_comp";
+            } else if(!empty($compatible)) {
+                $registros .= " as sp inner join equipos as eq on sp.id_equip=eq.id_equipo where sp.id_equip and sp.id_equip_comp";
             }
 
             $registros = $db->prepare($registros);
@@ -202,7 +209,7 @@ class inventoryClass {
         try {
             $db = getDB();
 
-            $registros = "SELECT SQL_CALC_FOUND_ROWS * FROM Movements WHERE nombre = ?";
+            $registros = "SELECT * FROM Movements WHERE nombre = ?";
 
             if(!empty($fechaI)) {
                 $registros .= " AND date >= '".$fechaI."'";
@@ -219,6 +226,59 @@ class inventoryClass {
             $registros = $db->prepare($registros);
 
             $registros->execute([$nombre_u]);
+
+            $registros = $registros->fetchAll();
+
+            $tabla = '<table class="table table-striped">
+            <thead>
+            <th>Código</th>
+            <th>Tipo de Stock</th>
+            <th>Movimiento</th>
+            <th>Cantidad</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+            </thead><tbody>';
+            foreach($registros as $reg) {
+                $tabla .= '<tr><td>'.$reg['code'].'</td>';
+                $obtenerTipoStock = inventoryClass::obtenerUnTipoStock($reg['tipoStock']);
+                foreach($obtenerTipoStock as $tipoStock) {
+                    $tabla .= '<td>'.$tipoStock->nameTipoStock.'</td>';
+                }
+                $tabla .= '<td>'.$reg['move'].'</td>
+                    <td>'.$reg['qty'].'</td>
+                    <td>'.$reg['date'].'</td>
+                    <td>'.$reg['hora'].'</td>
+                    </tr>';
+            }
+
+            $tabla .= '</tbody></table>';
+            echo $tabla;
+        } catch(PDOException $e) {
+            echo '"error":{"text:"'. $e->getMessage().'}}';
+        }
+    }
+
+    public static function obtenerMovimientosGenerales() {
+        try {
+            $db = getDB();
+
+            $registros = "SELECT SQL_CALC_FOUND_ROWS * FROM Movements";
+
+            if(!empty($fechaI)) {
+                $registros .= " AND date >= '".$fechaI."'";
+            }
+            if(!empty($fechaF)) {
+                $registros .= " AND date <= '".$fechaF."'";
+            }
+            if(!empty($codigo)) {
+                $registros .= " AND code LIKE ".$codigo;
+            }
+
+            $registros .= " order by date desc";
+
+            $registros = $db->prepare($registros);
+
+            $registros->execute();
 
             $registros = $registros->fetchAll();
 
@@ -252,25 +312,34 @@ class inventoryClass {
     public static function consumirRepuestos($codigo, $nombre, $tipoStock) {
         $db = getDB();
         try {
-            $stmt = $db->prepare("SELECT * FROM spareparts where code = ? and tipoStock = ?");
-            $stmt->execute([$codigo, $tipoStock]);
+            $stmt = $db->prepare("SELECT * FROM SpareParts where code = ?");
+            $stmt->execute([$codigo]);
             
             $count = $stmt->rowCount();
-            $cantidad = $stmt->fetch(PDO::FETCH_OBJ);
             if($count > 0) {
-                if($cantidad->qty > 0) {
-                    $update = $db->prepare("UPDATE spareparts SET qty = qty - 1 where code = ? AND tipoStock = ?");
-                    $update->execute([$codigo, $tipoStock]);
+                $validEstado = $db->prepare("SELECT * FROM SpareParts WHERE code = ? and tipoStock = ?");
+                $validEstado->execute([$codigo, $tipoStock]);
+                $countEstado = $validEstado->rowCount();
+                if($countEstado > 0) {
+                    $cantidad = $validEstado->fetch(PDO::FETCH_OBJ);
+                    if($cantidad->qty > 0) {
+                        $update = $db->prepare("UPDATE spareparts SET qty = qty - 1 where code = ? AND tipoStock = ?");
+                        $update->execute([$codigo, $tipoStock]);
+                        date_default_timezone_set('America/Buenos_Aires');
 
-                    $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, tipoStock, date) VALUES
-                    ('$nombre', '$codigo', 'Salida', 1, '$tipoStock', current_timestamp())");
-                    $movement->execute();
-                    echo json_encode(1);
+                        $fecha = date('His');
+                        $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, tipoStock, date, hora) VALUES
+                        ('$nombre', '$codigo', 'Salida', 1, '$tipoStock', current_time(), $fecha)");
+                        $movement->execute();
+                        echo json_encode(1);
+                    } else {
+                        echo json_encode(2);
+                    }
                 } else {
-                    echo json_encode(2);
+                    echo json_encode(3);
                 }
             } else {
-                echo json_encode(3);
+                echo json_encode(4);
             }
         }catch(PDOException $e) {
             echo $e->getMessage();
@@ -286,21 +355,34 @@ class inventoryClass {
             $count = $stmt->rowCount();
             $cantidad = $stmt->fetch(PDO::FETCH_OBJ);
             if($count > 0) {
-                if($cantidad->qty >= 0) {
-                    $update = $db->prepare("UPDATE spareparts SET qty = qty + 1 where code = ? AND tipoStock = ?");
-                    $update->execute([$codigo, $tipoStock]);
+                $validEstado = $db->prepare("SELECT * FROM SpareParts WHERE code = ? and tipoStock = ?");
+                $validEstado->execute([$codigo, $tipoStock]);
+                $countEstado = $validEstado->rowCount();
 
-                    if($update) {
-                        $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, tipoStock, date) VALUES
-                        ('$nombre', '$codigo', 'Entrada', 1, '$tipoStock', current_timestamp())");
-                        $movement->execute();
-                        echo json_encode(1);
+                if($countEstado > 0) {
+                    if($cantidad->qty >= 0) {
+                        $update = $db->prepare("UPDATE spareparts SET qty = qty + 1 where code = ? AND tipoStock = ?");
+                        $update->execute([$codigo, $tipoStock]);
+                        
+                        date_default_timezone_set('America/Buenos_Aires');
+
+                        $fecha = date('His');
+
+                        if($update) {
+                            $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, tipoStock, date, hora) VALUES
+                            ('$nombre', '$codigo', 'Entrada', 1, '$tipoStock', current_time(), $fecha)");
+                            $movement->execute();
+                            echo json_encode(1);
+                        }
+                    } else {
+                        echo json_encode(2);
                     }
                 } else {
-                    echo json_encode(2);
+                    echo json_encode(3);
                 }
+                
             } else {
-                echo json_encode(3);
+                echo json_encode(4);
             }
         }catch(PDOException $e) {
             echo $e->getMessage();

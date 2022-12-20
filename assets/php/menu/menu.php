@@ -16,7 +16,7 @@
                         </li>
                         
                         <li class="nav-item w-100" style="margin-top: 108%;">
-                            <a href="admin/index.php" class="nav-link text-light pl-4">Admin</a>
+                            <a href="admin/index.php" class="nav-link text-light pl-4">Administrador</a>
                         </li>
                     </ul>
                 </nav>  

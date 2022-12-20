@@ -18,7 +18,7 @@ if(!$connectAdmin->class == "Admin") {
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consumir Repuestos</title>
+    <title>Panel de administracion</title>
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/css/styles.css" rel="stylesheet" />
 </head>
@@ -34,11 +34,8 @@ if(!$connectAdmin->class == "Admin") {
                                 </div>
                             </a>
                             <ul class="navbar-nav d-flex flex-column mt-5 w-100">
-                                <li class="nav-item w-100 mt-1">
-                                    <a href="../consumirrepuestos.php" class="nav-link text-light pl-4">Consumo repuestos</a>
-                                </li>
                                 <li class="nav-item w-100 mt-3">
-                                    <a href="../movimientos.php" class="nav-link text-light pl-4">Movimientos</a>
+                                    <a href="movimientos.php" class="nav-link text-light pl-4">Movimientos Generales</a>
                                 </li>
                                 <li class="nav-item w-100 mt-3">
                                     <a href="../inventario.php" class="nav-link text-light pl-4">Inventario</a>
@@ -47,8 +44,8 @@ if(!$connectAdmin->class == "Admin") {
                                 <li class="nav-item w-100 mt-3">
                                     <a href="../admin/reportes.php" class="nav-link text-light pl-4">Reportes</a>
                                 </li>
-                                <li class="nav-item w-100" style="margin-top: 80%;">
-                                    <a href="../admin/index.php" class="nav-link text-light pl-4">Admin</a>
+                                <li class="nav-item w-100" style="margin-top: 100%;">
+                                    <a href="../index.php" class="nav-link text-light pl-4">Volver</a>
                                 </li>
                             </ul>
                         </nav>  
@@ -143,6 +140,18 @@ if(!$connectAdmin->class == "Admin") {
                                     <div class="col-sm-6 mb-2">
                                         <input type="text" class="form-control val" id="inputCedula" name="cedula" placeholder="Ingresa la cedula">
                                         <small id="cedulaInfo" class="form-text text-muted" style="font-size: 18px;">Ingresa la cedula sin punto ni guión.</small>
+                                    </div>
+
+                                    <div class="col-sm-6 mb-2">
+                                        <select class="form-select" id="selectGenero">
+                                            <option value="" selected disabled>Selecciona el genero.</option>
+                                            <option value="F">Femenino</option>
+                                            <option value="M">Masculino</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-sm-6 mb-2">
+                                        <input type="file" class="form-control" id="inputImageProfile" />
                                     </div>
 
                                     <div class="form-check col-sm-6">
@@ -394,13 +403,14 @@ if(!$connectAdmin->class == "Admin") {
                     var nombreUser = document.getElementById('inputUsuario').value;
                     var contrasenia = document.getElementById('inputContrasenia').value;
                     var cedula = document.getElementById('inputCedula').value;
+                    var genero = document.getElementById('selectGenero').value;
                     var isAdmin = "";
 
                     if($('#isAdmin').is(':checked')) {
                         isAdmin = "Admin";
                     }
 
-                    if(nombre.trim() != "" && apellido.trim() != "" && nombreUser.trim() != "" && contrasenia.trim() != "" && cedula.trim() != "") {
+                    if(nombre.trim() != "" && apellido.trim() != "" && nombreUser.trim() != "" && contrasenia.trim() != "" && cedula.trim() != "" && genero.trim() != "") {
                         if(cedula.length < 8 || cedula.length > 8) {
                             responseMessage.classList.remove('d-none');
                             responseMessage.classList.remove('alert-success');
@@ -409,7 +419,7 @@ if(!$connectAdmin->class == "Admin") {
                         } else {
                             $.ajax({
                                 url: "../assets/php/userClass.php",
-                                data: {name: nombre, lastname: apellido, nombre_u: nombreUser, password: contrasenia, ci: cedula, class: isAdmin, funcion: "addUser"},
+                                data: {name: nombre, lastname: apellido, nombre_u: nombreUser, password: contrasenia, ci: cedula, class: isAdmin, gender: genero, funcion: "addUser"},
                                 type: "POST",
                                 dataType: "JSON",
                                 success: function(e) {

@@ -1,9 +1,13 @@
 <?php
-include_once('assets/php/connection.php');
-include 'assets/php/userClass.php';
-include_once('assets/php/inventoryClass.php');
-if($_SESSION['sesion_exito'] != 1) {
-    header('Location: login.php');
+include_once('../assets/php/connection.php');
+include '../assets/php/userClass.php';
+include_once('../assets/php/inventoryClass.php');
+
+$admin = $_SESSION['uid'];
+$connectAdmin =  userClass::obtenerDatosUnUsuario($admin);
+
+if(!$connectAdmin->class == "Admin") {
+    header('Location: ../login.php');
 } else {
     $dataUser = userClass::obtenerDatosUnUsuario($_SESSION['uid']);
 }
@@ -14,10 +18,10 @@ if($_SESSION['sesion_exito'] != 1) {
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
-    <script src="assets/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/jquery-3.6.1.min.js"></script>
-    <link href="assets/css/styles.css" rel="stylesheet" />
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+    <script src="../assets/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/jquery-3.6.1.min.js"></script>
+    <link href="../assets/css/styles.css" rel="stylesheet" />
     <title>Document</title>
 </head>
 <body>
@@ -25,9 +29,29 @@ if($_SESSION['sesion_exito'] != 1) {
 <div class="container-fluid">
     <div class="row">
         <div class="col-2" style="padding-left: 0;">
-        <?php
-            include 'assets/php/menu/menu.php';
-        ?>
+            <div class="nav-MenuVert">
+                <nav class="navbar navbar-expand d-flex flex-column align-items-start" id="sidebar">
+                    <a href="../index.php" class="navbar-brand text-light mt-5 d-block mx-auto">
+                        <div class="display-6" style="font-size: 30px;">StockControl
+                        </div>
+                    </a>
+                    <ul class="navbar-nav d-flex flex-column mt-5 w-100">
+                        <li class="nav-item w-100 mt-3">
+                            <a href="movimientos.php" class="nav-link text-light pl-4">Movimientos Generales</a>
+                        </li>
+                        <li class="nav-item w-100 mt-3">
+                            <a href="../inventario.php" class="nav-link text-light pl-4">Inventario</a>
+                        </li>
+                                
+                        <li class="nav-item w-100 mt-3">
+                            <a href="../admin/reportes.php" class="nav-link text-light pl-4">Reportes</a>
+                        </li>
+                        <li class="nav-item w-100" style="margin-top: 100%;">
+                            <a href="../index.php" class="nav-link text-light pl-4">Volver</a>
+                        </li>
+                    </ul>
+                </nav>  
+            </div>
         </div>
 
             <div class="col-10">  
@@ -62,7 +86,7 @@ if($_SESSION['sesion_exito'] != 1) {
 
                         
                 </div>
-                <div class="col-4" style="">
+                <div class="col-4">
                     <button class="btn btn-outline-primary mb-3 btnFiltros" style=""><svg xmlns="http:/www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-filter"viewBox="0 0 16 16">
                     <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 01h-11a.5.5 0 0 1-.5-.5z"/>
                     </svg> Filtros</button>
@@ -70,25 +94,13 @@ if($_SESSION['sesion_exito'] != 1) {
                         <h5 class="card-header">Filtros</h5>
                         <div class="card-body">
                         <label for="start">Fecha Inicio:</label>
-                        <input type="date" class="mb-3" id="startDate" name="trip-start"
+                        <input type="date" class="mb-4" id="startDate" name="trip-start"
                             value="2022-11-01"
                             min="2022-01-01" max="3018-12-31"> <br>
                         <label for="start">Fecha Final:</label>
-                        <input type="date" class="mb-3" id="endDate" name="trip-start"
+                        <input type="date" class="mb-4" id="endDate" name="trip-start"
                             value="2022-11-10"
                             min="2022-01-01" max="3018-01-01"> <br>
-                        <select class="form-select mb-3" id="tipoMov" style="margin-bottom: 5px;">
-                            <option value="" selected disabled>Tipo de movimiento</option>
-                            <option value="Entrada">Entrada</option>
-                            <option value="Salida">Salida</option>
-                        </select>
-                        <select class="form-select mb-3" id="tipoStock" style="margin-bottom: 5px;">
-                            <option value="" selected disabled>Tipo de Stock</option>
-                            <option value="Origen">Origen</option>
-                            <option value="Sano">Sano</option>
-                            <option value="Remanufacturado">Remanufacturado</option>
-                            <option value="Free">Free</option>
-                        </select>
                         <label for="codigoRep">Respuesto</label>
                         <input type="text" class="form-control w-50 d-inline-block mb-3" id="codigoRep"placeholder="Código" />
                         <button class="btn btn-outline-primary w-100 btnFiltrar">Filtrar</button>
@@ -114,10 +126,9 @@ if($_SESSION['sesion_exito'] != 1) {
                 jQuery(this).val(jQuery(this).val().replace(/[^0-9]/g, ''));
             });
         });
-    var user = "<?php echo $dataUser->nombre_u; ?>";
     $.ajax({
         url: 'assets/php/inventoryClass.php',
-        data: {nombre_u: user, funcion: "filtrarMovimientos"},
+        data: {funcion: "filtrarMovimientosGenerales"},
         type: "post",
         success: function(e) {
             $('#tabla-movimientos').html(e);
@@ -144,7 +155,7 @@ if($_SESSION['sesion_exito'] != 1) {
 
             $.ajax({
                 url: 'assets/php/inventoryClass.php',
-                data: {dateIni: fechaIni, dateFin: fechaFin, code: codigo, nombre_u: user, funcion: "filtrarMovimientos"},
+                data: {dateIni: fechaIni, dateFin: fechaFin, code: codigo, funcion: "filtrarMovimientosGenerales"},
                 type: "post",
                 success: function(event) {
                     $('#tabla-movimientos').html(event);

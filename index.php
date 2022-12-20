@@ -34,9 +34,16 @@ if($_SESSION['sesion_exito'] != 1) {
                     <div class="mensaje-bienvenida">
                         <?php
                             if($dataUser) {
-                            ?>
-                                <p class="h1 display-4">Bienvenido/a <?php echo  $dataUser->nombre;?></p>
-                            <?php
+                                if($dataUser->genero == "F") {
+                                    ?>
+                                    <p class="h1 display-4">Bienvenida <?php echo  $dataUser->nombre;?></p>
+                                    <?php
+                                } else {
+                                    ?>
+                                    <p class="h1 display-4">Bienvenido <?php echo  $dataUser->nombre;?></p>
+                                    <?php
+                                }
+                            
                             }
                         ?>
                     </div>

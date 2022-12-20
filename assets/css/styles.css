@@ -29,3 +29,32 @@
     display: flex;
     justify-content: center;
 }
+#btnSuccess{
+    background-color:#1bc5bd;
+    border-color:#1bc5bd;
+  }
+  
+  #btnInfo{
+    background-color:#187de4;
+    border-color:#187de4;
+  }
+  
+  #btnWarning{
+   background-color:#ee9d01;
+   border-color:#ee9d01
+  }
+  
+  #btnError{
+    background-color:#ee2d41;
+    border-color:#ee2d41;
+  }
+  #btnSuccess,#btnInfo,#btnWarning,#btnError{
+    color:#fff;
+    border-radius:0.5rem;
+    font-weight:400 !important;
+    font-size:0.765rem;
+    width:90px;
+    height:36px;
+    margin:3px;
+    cursor:pointer;
+  }

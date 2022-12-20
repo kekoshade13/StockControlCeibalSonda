@@ -17,8 +17,6 @@ if(!$connectAdmin->class == "Admin") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportes</title>
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
-    <script src="../assets/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/jquery-3.6.1.min.js"></script>
     <link href="../assets/css/styles.css" rel="stylesheet" />
 </head>
 <body>
@@ -28,16 +26,13 @@ if(!$connectAdmin->class == "Admin") {
                 <div class="col-2" style="padding-left: 0;">
                     <div class="nav-MenuVert">
                         <nav class="navbar navbar-expand d-flex flex-column align-items-start" id="sidebar">
-                            <a href="../index.php" class="navbar-brand text-light mt-5 d-block mx-auto">
+                        <a href="../index.php" class="navbar-brand text-light mt-5 d-block mx-auto">
                                 <div class="display-6" style="font-size: 30px;">StockControl
                                 </div>
                             </a>
                             <ul class="navbar-nav d-flex flex-column mt-5 w-100">
-                                <li class="nav-item w-100 mt-1">
-                                    <a href="../consumirrepuestos.php" class="nav-link text-light pl-4">Consumo repuestos</a>
-                                </li>
                                 <li class="nav-item w-100 mt-3">
-                                    <a href="../movimientos.php" class="nav-link text-light pl-4">Movimientos</a>
+                                    <a href="movimientos.php" class="nav-link text-light pl-4">Movimientos Generales</a>
                                 </li>
                                 <li class="nav-item w-100 mt-3">
                                     <a href="../inventario.php" class="nav-link text-light pl-4">Inventario</a>
@@ -46,8 +41,8 @@ if(!$connectAdmin->class == "Admin") {
                                 <li class="nav-item w-100 mt-3">
                                     <a href="../admin/reportes.php" class="nav-link text-light pl-4">Reportes</a>
                                 </li>
-                                <li class="nav-item w-100" style="margin-top: 80%;">
-                                    <a href="../admin/index.php" class="nav-link text-light pl-4">Admin</a>
+                                <li class="nav-item w-100" style="margin-top: 100%;">
+                                    <a href="../index.php" class="nav-link text-light pl-4">Volver</a>
                                 </li>
                             </ul>
                         </nav>  
@@ -114,7 +109,7 @@ if(!$connectAdmin->class == "Admin") {
 
 
     <!-- All of JavaScript -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="../assets/js/jquery.min.js"></script>
     <script src="../assets/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/popper.min.js"></script>
 </body>

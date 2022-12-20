@@ -20,6 +20,8 @@ if($_SESSION['sesion_exito'] != 1) {
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/css/styles.css" rel="stylesheet" />
     <script src="assets/js/jquery-3.6.1.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 </head>
 <body>
     <div class="container-fluid">
@@ -110,7 +112,24 @@ if($_SESSION['sesion_exito'] != 1) {
             });
         });
         var messageRep = document.getElementById('messageRep');
-
+        $(document).ready(function() {
+            toastr.options = {
+				'closeButton': true,
+				'debug': false,
+				'newestOnTop': true,
+				'progressBar': false,
+				'positionClass': 'toast-top-right',
+				'preventDuplicates': false,
+				'showDuration': '500',
+				'hideDuration': '1000',
+				'timeOut': '5000',
+				'extendedTimeOut': '1000',
+				'showEasing': 'swing',
+				'hideEasing': 'linear',
+				'showMethod': 'fadeIn',
+				'hideMethod': 'fadeOut',
+			}
+        });
         $(document).on('click', '.consumRep', function(e) {
             var tipoOperacion = document.getElementById("resultadoConsumo");
             var codigo = document.getElementById("inputRepuesto").value;
@@ -121,43 +140,40 @@ if($_SESSION['sesion_exito'] != 1) {
                 messageRep.classList.add('d-none');
                 if(codigo != "") {
                     if(codigo.length < 6 || codigo.length > 6) {
-                        messageRep.classList.remove('d-none');
-                        messageRep.classList.remove('alert-success');
-                        messageRep.classList.add('alert-danger');
-                        messageRep.innerHTML = "Debes ingresar un repuesto con 6 digitos.";
+                        toastr.error('Debes ingresar un repuesto de 6 digitos.','Error');
                         document.getElementById('inputRepuesto').value = "";
                     } else {
-                        $.ajax({
-                            url: "assets/php/inventoryClass.php",
-                            data: {name: nombre, code: codigo, tipoEstado: tipoStock, funcion: "consumirRepuestos"},
-                            type: "post",
-                            dataType: "json",
-                            success: function(e) {
-                                var message = JSON.parse(e);
-                                if(message == 1) {
-                                    messageRep.classList.remove('d-none');
-                                    messageRep.classList.remove('alert-danger');
-                                    messageRep.classList.add('alert-success');
-                                    messageRep.innerHTML = "Se ha consumido el repuesto: " + codigo + " correctamente.";
-                                    document.getElementById('inputRepuesto').value = "";
-                                } else if(message == 2) {
-                                    messageRep.classList.remove('d-none');
-                                    messageRep.classList.remove('alert-success');
-                                    messageRep.classList.add('alert-danger');
-                                    messageRep.innerHTML = "No contamos con stock del repuesto: " + codigo + ". Por favor, ¡Contacta a un administrador!";
-                                    document.getElementById('inputRepuesto').value = "";
-                                } else if(message == 3) {
-                                    messageRep.classList.remove('d-none');
-                                    messageRep.classList.remove('alert-success');
-                                    messageRep.classList.add('alert-danger');
-                                    messageRep.innerHTML = "¡El código que estas ingresando no existe!";
-                                    document.getElementById('inputRepuesto').value = "";
+                        if(tipoStock != "") {
+                            $.ajax({
+                                url: "assets/php/inventoryClass.php",
+                                data: {name: nombre, code: codigo, tipoEstado: tipoStock, funcion: "consumirRepuestos"},
+                                type: "post",
+                                dataType: "json",
+                                success: function(e) {
+                                    var message = JSON.parse(e);
+                                    if(message == 1) {
+                                        toastr.success("Se ha consumido el repuesto: " + codigo + " correctamente.",'Repuesto Consumido.');
+                                        document.getElementById('inputRepuesto').value = "";
+                                    } else if(message == 2) {
+                                        toastr.warning("No contamos con stock del repuesto: " + codigo + ".",'Falta de Stock.');
+                                        document.getElementById('inputRepuesto').value = "";
+                                    } else if(message == 3) {
+                                        toastr.error("El repuesto: " + codigo + " no existe en ese estado. Intenta nuevamente.",'Código Inexistente..');
+                                        document.getElementById('inputRepuesto').value = "";
+                                    } else if(message == 4) {
+                                        toastr.error("El repuesto: " + codigo + " no existe. Intenta nuevamente.",'Código Inexistente..');
+                                        document.getElementById('inputRepuesto').value = "";
+                                    }
                                 }
-                            }
-                        });
+                            });   
+                        } else {
+                            toastr.error('Debes seleccionar un tipo de stock.','Error');
+                            document.getElementById('inputRepuesto').value = "";
+                        }
                     }
                 } else {
-                    alert("Debes ingresar un código correcto.");
+                    toastr.error('Debes ingresar un código correcto.','Error');
+                    document.getElementById('inputRepuesto').value = "";
                 }
             } else if(tipoOperacion.innerHTML == "Devolver Repuestos") {
                 var codigo = document.getElementById("inputRepuesto").value;
@@ -166,42 +182,41 @@ if($_SESSION['sesion_exito'] != 1) {
 
                 if(codigo != "") {
                     if(codigo.length < 6 || codigo.length > 6) {
-                        messageRep.classList.remove('d-none');
-                        messageRep.classList.remove('alert-success');
-                        messageRep.classList.add('alert-danger');
-                        messageRep.innerHTML = "Debes ingresar un repuesto con 6 digitos.";
+                        toastr.error('Debes ingresar un repuesto de 6 digitos.','Error');
                         document.getElementById('inputRepuesto').value = "";
                     } else {
-                        $.ajax({
-                            url: "assets/php/inventoryClass.php",
-                            data: {name: nombre, code: codigo, tipoEstado: tipoStock, funcion: "devolverRepuestos"},
-                            type: "POST",
-                            dataType: "JSON",
-                            success: function(e) {
-                                var message = JSON.parse(e);
-                                if(message == 1) {
-                                    messageRep.classList.remove('d-none');
-                                    messageRep.classList.remove('alert-success');
-                                    messageRep.classList.add('alert-danger');
-                                    messageRep.innerHTML = "Se ha devuelto el repuesto: " + codigo + " correctamente.";
-                                    document.getElementById('inputRepuesto').value = "";
-                                } else if(message == 3){
-                                    messageRep.classList.remove('d-none');
-                                    messageRep.classList.remove('alert-success');
-                                    messageRep.classList.add('alert-danger');
-                                    messageRep.innerHTML = "¡El código que estas ingresando no existe!";
-                                } else {
-                                    messageRep.classList.remove('d-none');
-                                    messageRep.classList.remove('alert-success');
-                                    messageRep.classList.add('alert-danger');
-                                    messageRep.innerHTML = "¡Ha ocurrido un error!";
+                        if(tipoStock != "") {
+                            $.ajax({
+                                url: "assets/php/inventoryClass.php",
+                                data: {name: nombre, code: codigo, tipoEstado: tipoStock, funcion: "devolverRepuestos"},
+                                type: "POST",
+                                dataType: "JSON",
+                                success: function(e) {
+                                    var message = JSON.parse(e);
+                                    if(message == 1) {
+                                        toastr.success("Se ha devuelto el repuesto: " + codigo + " correctamente.",'Repuesto Consumido.');
+                                        document.getElementById('inputRepuesto').value = "";
+                                    } else if(message == 3){
+                                        toastr.warning("El código: " + codigo + " no existe en ese estado. ¡Intenta Nuevamente!");
+                                        document.getElementById('inputRepuesto').value = "";
+                                    } else if(message == 4) {
+                                        toastr.warning("El código: " + codigo + " no existe. ¡Intenta Nuevamente!");
+                                        document.getElementById('inputRepuesto').value = "";
+                                    } else {
+                                        toastr.error("Ha ocurrido un error.");
+                                        document.getElementById('inputRepuesto').value = "";
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        } else {
+                            toastr.error('Debes seleccionar un tipo de stock.','Error');
+                            document.getElementById('inputRepuesto').value = "";
+                        }
                     }
                     
                 } else {
-                    alert("Debes ingresar un código correcto.");
+                    toastr.error('Debes ingresar un código correcto.','Error');
+                        document.getElementById('inputRepuesto').value = "";
                 }
             }
         }); 

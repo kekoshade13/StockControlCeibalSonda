@@ -4,24 +4,33 @@ session_start();
 if(!empty($_POST['funcion'])) {
     switch($_POST['funcion']) {
         case 'addUser':
-            if(!empty($_POST['name']) && !empty($_POST['lastname']) && !empty($_POST['nombre_u']) && !empty($_POST['password']) && !empty($_POST['ci'])) {
+            if(!empty($_POST['name']) && !empty($_POST['lastname']) && !empty($_POST['nombre_u']) && !empty($_POST['password']) && !empty($_POST['ci']) && !empty($_POST['gender'])) {
                 $nombre = $_POST['name'];
                 $apellido = $_POST['lastname'];
                 $usuario = $_POST['nombre_u'];
                 $contrasenia = $_POST['password'];
                 $cedula = $_POST['ci'];
                 $class = "";
+                $genero = $_POST['gender'];
 
                 if(isset($_POST['class'])) {
                     $class = $_POST['class'];
                 }
-                userClass::registrarUsuario($nombre, $apellido, $usuario, $cedula, $contrasenia, $class);
+                userClass::registrarUsuario($nombre, $apellido, $usuario, $cedula, $contrasenia, $class, $genero);
             }
             break;
         case 'deleteUser':
             if(!empty($_POST['id_user'])) {
                 $id = $_POST['id_user'];
                 userClass::eliminarUsuario($id);
+            }
+            break;
+        case 'loginUsuario':
+            if(!empty($_POST['cedula']) && !empty($_POST['contrasenia'])) {
+                $ci = $_POST['cedula'];
+                $pass = $_POST['contrasenia'];
+
+                userClass::userLogin($ci, $pass);
             }
             break;
     }
@@ -45,7 +54,8 @@ class  userClass {
                 if(password_verify($contrasenia, $data->pass)) {
                     $_SESSION['uid'] = $data->id_user;
                     $_SESSION['sesion_exito'] = 1;
-                    $_SESSION['hora']=time(); 
+                    $_SESSION['hora']=time();
+
                     return $_SESSION['uid'];
                 } else {
                     return false;
@@ -53,16 +63,12 @@ class  userClass {
             } else {
                 return false;
             }
-            
-            $query->execute();
         } catch(PDOException $e) {
             echo '"error":{"text:"'. $e->getMessage().'}}';
         }
-        $db->null;
-        $query->null;
     }
 
-    public static function registrarUsuario($nombre, $apellido, $usuario, $ci, $pass, $class) {
+    public static function registrarUsuario($nombre, $apellido, $usuario, $ci, $pass, $class, $genero) {
         $db = getDB();
         try {
             
@@ -82,9 +88,13 @@ class  userClass {
                     echo json_encode(2);
                 } else {
                     $passhash= password_hash($pass, PASSWORD_BCRYPT);;
-                    $query = $db->prepare("INSERT INTO users (nombre_u, nombre, apellido, ci, pass, class) VALUES ('$usuario', '$nombre', '$apellido', '$ci', '$passhash', '$class')");
+                    $query = $db->prepare("INSERT INTO users (nombre_u, nombre, apellido, ci, pass, class, genero) VALUES ('$usuario', '$nombre', '$apellido', '$ci', '$passhash', '$class', '$genero')");
                     $query->execute();
                     if($query) {
+                        $carpeta = "../img/img_perfil/" . $usuario;
+                        if(!file_exists($carpeta)) {
+                            mkdir($carpeta, 0777, true);
+                        }
                         echo json_encode(1);
                     } else { 
                         echo json_encode(0);
