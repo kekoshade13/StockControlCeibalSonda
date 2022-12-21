@@ -74,7 +74,17 @@ if(!empty($_POST['funcion'])) {
             } else {
                 $code = '';
             }
-            inventoryClass::obtenerMovimientos($nombre, $fechaI, $fechaF, $code);
+            if(!empty($_POST['tipoMovi'])) {
+                $tipoMov = $_POST['tipoMovi'];
+            } else {
+                $tipoMov = '';
+            }
+            if(!empty($_POST['tipoStoc'])) {
+                $tipoStoc = $_POST['tipoStoc'];
+            } else {
+                $tipoStoc = '';
+            }
+            inventoryClass::obtenerMovimientos($nombre, $fechaI, $fechaF, $code, $tipoMov, $tipoStoc);
             break;
         case 'filtrarMovimientosGenerales':
             inventoryClass::obtenerMovimientosGenerales();
@@ -150,11 +160,15 @@ class inventoryClass {
                 $registros .= " where tipostock = $tipoStock";
             }
 
-            if(!empty($compatible) && !empty($modelo)) {
-                $registros .= " and sp.id_equip_comp";
-            } else if(!empty($compatible)) {
-                $registros .= " as sp inner join equipos as eq on sp.id_equip=eq.id_equipo where sp.id_equip and sp.id_equip_comp";
+            if(!empty($compatible)) {
+                $registroComp = $db->prepare('select * from spareparts as sp inner join equipos_repuestos as eqR inner join equipos as eq on eqR.repuesto_id=sp.id_code and eqR.equipo_id=eq.id_equipo where eqR.repuesto_id;
+                ');
+                $registroComp->execute();
+                $registroComp = $registroComp->fetchAll();
+
             }
+
+            $registros .= " as sp inner join repuestos_estados as repE inner join tipoStock as ts on repE.id_repuesto=sp.id_code and repE.id_estado=ts.id_stock where repE.id_repuesto";
 
             $registros = $db->prepare($registros);
 
@@ -162,37 +176,37 @@ class inventoryClass {
 
             $registros = $registros->fetchAll();
 
-            self::$conteo = $db->query("SELECT FOUND_ROWS() as total");
-            self::$conteo = self::$conteo->fetch()['total'];
-
-            self::$paginas = ceil(self::$conteo / self::$productosPorPagina);
-
             $tabla = '<table class="table table-striped">
             <thead>
             <th>Código</th>
-            <th>Nombre</th>
-            <th>Cantidad</th>';
+            <th>Nombre</th>';
             if(!empty($compatible)) {
                 $tabla .= '<th>Compatible con</th>';
+            } else {
+                $tabla .= '
+                <th>Cantidad</th>
+                <th>Tipo de Stock</th>
+                </thead><tbody>';
             }
-            $tabla .= '
-            <th>Tipo de Stock</th>
-            </thead><tbody>';
+            
             foreach($registros as $reg) {
                 $tabla .= '<tr>
                     <td>'.$reg['code'].'</td>
-                    <td>'.$reg['name'].'</td>
-                    <td>'.$reg['qty'].'</td>';
+                    <td>'.$reg['name'].'</td>';
                     if(!empty($compatible)) {
-                        $nombre = inventoryClass::obtenerUnEquipo($reg['id_equip_comp']);
-                        
-                        foreach($nombre as $name) {
-                            $tabla .= '<td>'.$name->nameEquipos.'</td>';
+                        foreach($registroComp as $regComp) {
+                        $nameEq = inventoryClass::obtenerUnEquipo($regComp['id_equipo']);
+                        foreach($nameEq as $name) {
+                            $tabla .= '<td>' . $name->name . '</td>';
                         }
-                    }
-                    $tipoStock = inventoryClass::obtenerUnTipoStock($reg['tipoStock']);
-                    foreach($tipoStock as $tStock) {
-                        $tabla .= '<td>'.$tStock->nameTipoStock.'</td>';
+                        
+                        }
+                    } else {
+                        $tabla .= '<td>'.$reg['qty'].'</td>';
+                        $tipoStock = inventoryClass::obtenerUnTipoStock($reg['id_stock']);
+                        foreach($tipoStock as $tStock) {
+                            $tabla .= '<td>'.$tStock->nameTipoStock.'</td>';
+                        }
                     }
 
                     $tabla .= '</tr>';
@@ -205,7 +219,7 @@ class inventoryClass {
         }
     }
 
-    public static function obtenerMovimientos($nombre_u, $fechaI, $fechaF, $codigo) {
+    public static function obtenerMovimientos($nombre_u, $fechaI, $fechaF, $codigo, $tipoMov, $tipoStoc) {
         try {
             $db = getDB();
 
@@ -220,8 +234,14 @@ class inventoryClass {
             if(!empty($codigo)) {
                 $registros .= " AND code LIKE ".$codigo;
             }
+            if(!empty($tipoMov)) {
+                $registros .= " AND move = '$tipoMov'";
+            }
+            if(!empty($tipoStoc)) {
+                $registros .= " AND tipoStock = '$tipoStoc'";
+            }
 
-            $registros .= " order by date desc";
+            $registros .= " order by fechaTotal desc";
 
             $registros = $db->prepare($registros);
 
@@ -328,8 +348,8 @@ class inventoryClass {
                         date_default_timezone_set('America/Buenos_Aires');
 
                         $fecha = date('His');
-                        $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, tipoStock, date, hora) VALUES
-                        ('$nombre', '$codigo', 'Salida', 1, '$tipoStock', current_time(), $fecha)");
+                        $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, tipoStock, date, hora, fechaTotal) VALUES
+                        ('$nombre', '$codigo', 'Salida', 1, '$tipoStock', current_time(), $fecha, current_timestamp())");
                         $movement->execute();
                         echo json_encode(1);
                     } else {
@@ -369,8 +389,8 @@ class inventoryClass {
                         $fecha = date('His');
 
                         if($update) {
-                            $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, tipoStock, date, hora) VALUES
-                            ('$nombre', '$codigo', 'Entrada', 1, '$tipoStock', current_time(), $fecha)");
+                            $movement = $db->prepare("INSERT INTO movements (nombre, code, move, qty, tipoStock, date, hora, fechaTotal) VALUES
+                            ('$nombre', '$codigo', 'Entrada', 1, '$tipoStock', current_time(), $fecha, current_timestamp())");
                             $movement->execute();
                             echo json_encode(1);
                         }

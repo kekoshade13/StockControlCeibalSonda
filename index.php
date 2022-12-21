@@ -51,6 +51,7 @@ if($_SESSION['sesion_exito'] != 1) {
                     <div class="logosCompany" style="position:absolute; bottom: 0px; right: 0px; opacity: 0.9;">
                         <img src="assets/img/logos/logoceibal.png" alt="" width="150">
                         <img src="assets/img/logos/logosonda.png" alt="" width="150">
+                        <div id="embed-iframe"></div>
                     </div>
                             
                 </div>

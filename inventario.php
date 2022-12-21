@@ -65,7 +65,7 @@ if($_SESSION['sesion_exito'] != 1) {
                         <select id="selectEquipos" class="form-select mb-3">
                             <option value="" selected>Selecciona el modelo</option>
                             <?php foreach($obtenerEquipos as $equipo): ?>
-                            <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->nameEquipos ?></option>
+                            <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->name ?></option>
                             <?php endforeach; ?>
                         </select>
                         <select id="selectTipoStock" class="form-select mb-3">
@@ -78,7 +78,11 @@ if($_SESSION['sesion_exito'] != 1) {
                             <input class="form-check-input" type="checkbox" id="CheckCompatiblesR">
                             <label class="form-check-label" for="CheckCompatiblesR">Repuestos Compatibles</label>
                         </div>
-                        <button class="btn btn-outline-primary w-100 btnFiltrar">Filtrar</button>
+                        <div class="row">
+                            <button class="btn btn-outline-primary col-7 btnFiltrar" style="margin-right: 15px; margin-left: 22px;">Filtrar</button>
+                            <button class="btn btn-outline-danger col-3 btnLimpiar">Limpiar</button>
+                        </div>
+                        
                     </div>
                     </div>
                 </div>
@@ -113,6 +117,24 @@ if($_SESSION['sesion_exito'] != 1) {
         error: function(e) {
             console.log(e);
         }
+     });
+
+     $(document).on('click', '.btnLimpiar', function(e) {
+        $.ajax({
+            url: 'assets/php/inventoryClass.php',
+            data: {funcion: "filtrarInventario"},
+            type: "post",
+            success: function(e) {
+                $('#tabla-movimientos').html(e);
+                document.getElementById('codigoRep').value = '';
+                document.getElementById('selectEquipos').value = '';
+                document.getElementById('selectTipoStock').value = '';
+                $('#CheckCompatiblesR').attr('checked', false);
+            },
+            error: function(e) {
+                console.log(e);
+            }
+        });
      });
 
      $(document).on('click', '.btnFiltros', function(e) {

@@ -21,7 +21,6 @@ if(!$connectAdmin->class == "Admin") {
     <title>Panel de administracion</title>
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/css/styles.css" rel="stylesheet" />
-</head>
 <body>
     <div class="container-fluid">
             <div class="row">
@@ -287,8 +286,8 @@ if(!$connectAdmin->class == "Admin") {
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
-                                        <div class="col-sm-4 mb-3" id="selectRepComp">
-                                            <select name="select_equipoComp" id="seleccion_EquipoComp" class="form-select">
+                                        <div class="col-sm-4 mb-3 selectpicker" id="selectRepComp">
+                                            <select multiple name="select_equipoComp" id="seleccion_EquipoComp" class="form-select" data-live-search="true">
                                                 <option selected value="">Equipo Compatible</option>
                                                 <?php foreach($obtenerEquipos as $equipo): ?>
                                                 <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->nameEquipos ?></option>
@@ -314,7 +313,6 @@ if(!$connectAdmin->class == "Admin") {
                 </div>
             </div>
     </div>
-
 
 
     <!-- All of JavaScript -->

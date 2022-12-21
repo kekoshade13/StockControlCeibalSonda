@@ -22,6 +22,19 @@ if($_SESSION['sesion_exito'] != 1) {
     <script src="assets/js/jquery-3.6.1.min.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+    <script>
+        $(document).keyup(function(event) {
+            if (event.which === 13) {
+                var tipoOperacion = document.getElementById("resultadoConsumo");
+                if(tipoOperacion.innerHTML == "Consumir Repuestos") {
+                    $('.consumRep').click();
+                } else if(tipoOperacion.innerHTML == "Devolver Repuestos") {
+                    $('.consumRep').click();
+                }
+            }
+        });
+    </script>
 </head>
 <body>
     <div class="container-fluid">
@@ -81,7 +94,7 @@ if($_SESSION['sesion_exito'] != 1) {
                                     </div>
 
                                 </div>
-                                <input type="button" class="btn btn-success consumRep w-100" id="buttonOper" value="Consumir Repuesto" />
+                                <input type="button" class="btn btn-success consumRep w-100" id="buttonOper" value="Consumir Repuesto"/>
                             </form>
                             <div class="alert alert-success text-center m-3 d-none" id="messageRep" role="alert"></div>
                         </div>

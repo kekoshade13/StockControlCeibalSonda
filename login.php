@@ -16,14 +16,21 @@ if(isset($_SESSION['sesion_exito']) != 0) {
     <script src="assets/js/jquery-3.6.1.min.js"></script>
     <link href="assets/css/styles.css" rel="stylesheet" />
     <title>Login Prueba</title>
+    <style>
+        body {
+            background-image: url('assets/img/ceibal.png');
+            background-repeat: repeat;
+            background-position: center, no-cover;
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="wrapper">
-        <div id="formcontent">
+<body class="bg-light" b >
+    <div class="wrapper row col-12 w-100">
+        <div id="formcontent" class="w-25">
              <form id="" method="POST">
                 <div class="form-control">
-                     <div class="col-md-6 text-center mb-5">
-                         <label class="h2" id="lblBienvenida">Bienvenido al sistema</label>
+                    <div class="col-md-6 mb-5 w-100">
+                        <p class="text-center" style="font-size: 35px;">Bienvenido/a al sistema</p>
                     </div>
                     <div>
                         <label id="lblUsuario">Cédula</label>
@@ -45,6 +52,12 @@ if(isset($_SESSION['sesion_exito']) != 0) {
             </form>
         </div>
     </div>
+
+    <div class="logosCompany" style="position:absolute; bottom: 0px; left: 0px; opacity: 0.9;">
+                        <img src="assets/img/logos/logoceibal.png" alt="" width="150">
+                        <img src="assets/img/logos/logosonda.png" alt="" width="150">
+                        <div id="embed-iframe"></div>
+                    </div>
     <?php
         if(!empty($_POST['btnLogin'])) {
             $ci = $_POST['ci'];

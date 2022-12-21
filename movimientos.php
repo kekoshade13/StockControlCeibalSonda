@@ -66,7 +66,7 @@ if($_SESSION['sesion_exito'] != 1) {
                     <button class="btn btn-outline-primary mb-3 btnFiltros" style=""><svg xmlns="http:/www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-filter"viewBox="0 0 16 16">
                     <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 01h-11a.5.5 0 0 1-.5-.5z"/>
                     </svg> Filtros</button>
-                    <div class="card d-none" id="pageFiltros">
+                    <div class="card d-none col-12" id="pageFiltros">
                         <h5 class="card-header">Filtros</h5>
                         <div class="card-body">
                         <label for="start">Fecha Inicio:</label>
@@ -84,14 +84,17 @@ if($_SESSION['sesion_exito'] != 1) {
                         </select>
                         <select class="form-select mb-3" id="tipoStock" style="margin-bottom: 5px;">
                             <option value="" selected disabled>Tipo de Stock</option>
-                            <option value="Origen">Origen</option>
-                            <option value="Sano">Sano</option>
-                            <option value="Remanufacturado">Remanufacturado</option>
-                            <option value="Free">Free</option>
+                            <option value="1">Origen</option>
+                            <option value="2">Sano</option>
+                            <option value="3">Remanufacturado</option>
+                            <option value="4">Free</option>
                         </select>
                         <label for="codigoRep">Respuesto</label>
                         <input type="text" class="form-control w-50 d-inline-block mb-3" id="codigoRep"placeholder="Código" />
-                        <button class="btn btn-outline-primary w-100 btnFiltrar">Filtrar</button>
+                        <div class="row">
+                            <button class="btn btn-outline-primary col-7 btnFiltrar" style="margin-right: 15px; margin-left: 22px;">Filtrar</button>
+                            <button class="btn btn-outline-danger col-3 btnLimpiar">Limpiar</button>
+                        </div>
                     </div>
                     </div>
                 </div>
@@ -141,16 +144,38 @@ if($_SESSION['sesion_exito'] != 1) {
             var fechaIni = document.getElementById('startDate').value;
             var fechaFin = document.getElementById('endDate').value;
             var codigo = document.getElementById('codigoRep').value;
+            var tipoMov = document.getElementById('tipoMov').value;
+            var tipoStock = document.getElementById('tipoStock').value;
 
             $.ajax({
                 url: 'assets/php/inventoryClass.php',
-                data: {dateIni: fechaIni, dateFin: fechaFin, code: codigo, nombre_u: user, funcion: "filtrarMovimientos"},
+                data: {dateIni: fechaIni, dateFin: fechaFin, code: codigo, nombre_u: user, tipoMovi: tipoMov, tipoStoc: tipoStock, funcion: "filtrarMovimientos"},
                 type: "post",
                 success: function(event) {
                     $('#tabla-movimientos').html(event);
                 },
                 error: function(e) {
                     $('#tabla-movimientos').html("Ha ocurrido un error.");
+                }
+            });
+        });
+
+        $(document).on('click', '.btnLimpiar', function(event) {
+
+            $.ajax({
+                url: 'assets/php/inventoryClass.php',
+                data: {nombre_u: user, funcion: "filtrarMovimientos"},
+                type: "post",
+                success: function(e) {
+                    document.getElementById('startDate').value = '';
+                    document.getElementById('endDate').value = '';
+                    document.getElementById('codigoRep').value = '';
+                    document.getElementById('tipoMov').value = '';
+                    document.getElementById('tipoStock').value = '';
+                    $('#tabla-movimientos').html(e);
+                },
+                error: function(e) {
+                    console.log(e);
                 }
             });
         });
