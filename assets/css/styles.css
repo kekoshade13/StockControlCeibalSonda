@@ -25,10 +25,6 @@
     min-height: 100%;
     padding: 20px;
 }
-.mensaje-bienvenida {
-    display: flex;
-    justify-content: center;
-}
 #btnSuccess{
     background-color:#1bc5bd;
     border-color:#1bc5bd;

@@ -19,6 +19,7 @@ if($_SESSION['sesion_exito'] != 1) {
     <script src="assets/js/jquery-3.6.1.min.js"></script>
     <link href="assets/css/styles.css" rel="stylesheet" />
     <title>Document</title>
+    <link rel="shortcut icon" href="assets/img/logos/logoprin.png">
 </head>
 <body>
 
@@ -37,7 +38,8 @@ if($_SESSION['sesion_exito'] != 1) {
                                 <ul class="navbar-nav" style="position: absolute; left: 80%; top: 5%;">
                                     <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <?php echo $dataUser->nombre." ".$dataUser->apellido ?>
+                                    <img src="assets/img/img_perfil/<?php echo $dataUser->nombre_u; ?>/<?php echo $dataUser->nombre_u?>.jpeg" alt="" width="35" style="width: 40px; height: 40px;border-radius: 100px;">     
+                                    <?php echo $dataUser->nombre." ".$dataUser->apellido ?>
                                     </a>
                                     <ul class="dropdown-menu">
                                         <li><a class="dropdown-item" href="logout.php">Cerrar Sesión</a></li>
@@ -70,13 +72,9 @@ if($_SESSION['sesion_exito'] != 1) {
                         <h5 class="card-header">Filtros</h5>
                         <div class="card-body">
                         <label for="start">Fecha Inicio:</label>
-                        <input type="date" class="mb-3" id="startDate" name="trip-start"
-                            value="2022-11-01"
-                            min="2022-01-01" max="3018-12-31"> <br>
+                        <input type="date" class="mb-3" id="startDate" name="trip-start"> <br>
                         <label for="start">Fecha Final:</label>
-                        <input type="date" class="mb-3" id="endDate" name="trip-start"
-                            value="2022-11-10"
-                            min="2022-01-01" max="3018-01-01"> <br>
+                        <input type="date" class="mb-3" id="endDate" name="trip-start"> <br>
                         <select class="form-select mb-3" id="tipoMov" style="margin-bottom: 5px;">
                             <option value="" selected disabled>Tipo de movimiento</option>
                             <option value="Entrada">Entrada</option>

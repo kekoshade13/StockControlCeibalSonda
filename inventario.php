@@ -10,7 +10,6 @@ if($_SESSION['sesion_exito'] != 1) {
     $obtenerTipoStock = inventoryClass::obtenerTiposStock();
 }
 ?>
-
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -21,6 +20,7 @@ if($_SESSION['sesion_exito'] != 1) {
     <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
     <link href="assets/css/styles.css" rel="stylesheet" />
     <title>Inicio</title>
+    <link rel="shortcut icon" href="assets/img/logos/logoprin.png">
 </head>
 <body>
 <div class="container-fluid">
@@ -37,7 +37,8 @@ if($_SESSION['sesion_exito'] != 1) {
                         <ul class="navbar-nav" style="position: absolute; left: 80%; top: 5%;">
                             <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <?php echo $dataUser->nombre." ".$dataUser->apellido ?>
+                            <img src="assets/img/img_perfil/<?php echo $dataUser->nombre_u; ?>/<?php echo $dataUser->nombre_u?>.jpeg" alt="" width="35" style="width: 40px; height: 40px;border-radius: 100px;">     
+                            <?php echo $dataUser->nombre." ".$dataUser->apellido ?>
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="logout.php">Cerrar Sesión</a></li>
@@ -63,20 +64,20 @@ if($_SESSION['sesion_exito'] != 1) {
                         <label for="codigoRep">Respuesto</label>
                         <input type="text" class="form-control w-50 d-inline-block mb-3" id="codigoRep" placeholder="Código" />
                         <select id="selectEquipos" class="form-select mb-3">
-                            <option value="" selected>Selecciona el modelo</option>
+                            <option value="" selected disabled>Selecciona el modelo</option>
                             <?php foreach($obtenerEquipos as $equipo): ?>
-                            <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->name ?></option>
+                            <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->nameEq ?></option>
                             <?php endforeach; ?>
                         </select>
                         <select id="selectTipoStock" class="form-select mb-3">
-                            <option selected class="disabled" value="">Tipo de Stock</option>
+                            <option selected disabled value="">Tipo de Stock</option>
                             <?php foreach($obtenerTipoStock as $tipoStock): ?>
                             <option value="<?php echo $tipoStock->id_stock ?>"><?php echo $tipoStock->nameTipoStock ?></option>
                             <?php endforeach; ?>
                         </select>
                         <div class="form-check form-switch mb-3">
                             <input class="form-check-input" type="checkbox" id="CheckCompatiblesR">
-                            <label class="form-check-label" for="CheckCompatiblesR">Repuestos Compatibles</label>
+                            <label class="form-check-label" for="CheckCompatiblesR" onclick="desactivarActivar()">Repuestos Compatibles</label>
                         </div>
                         <div class="row">
                             <button class="btn btn-outline-primary col-7 btnFiltrar" style="margin-right: 15px; margin-left: 22px;">Filtrar</button>
@@ -97,7 +98,6 @@ if($_SESSION['sesion_exito'] != 1) {
         </div>
     </div>        
 </div>
-
 <script>
     
     jQuery(document).ready(function(){
@@ -129,7 +129,8 @@ if($_SESSION['sesion_exito'] != 1) {
                 document.getElementById('codigoRep').value = '';
                 document.getElementById('selectEquipos').value = '';
                 document.getElementById('selectTipoStock').value = '';
-                $('#CheckCompatiblesR').attr('checked', false);
+                document.getElementById('CheckCompatiblesR').checked = false;
+                $('#selectTipoStock').removeAttr('disabled');
             },
             error: function(e) {
                 console.log(e);
@@ -155,9 +156,12 @@ if($_SESSION['sesion_exito'] != 1) {
 
             var repCompatible = "";
             if($('#CheckCompatiblesR').is(':checked')) {
+                e.preventDefault();
                 repCompatible = "Si";
+                $('#selectTipoStock').attr('disabled', 'disabled');
             } else {
                 repCompatible = "";
+                $('#selectTipoStock').removeAttr('disabled');
             }
 
             $.ajax({
@@ -173,6 +177,15 @@ if($_SESSION['sesion_exito'] != 1) {
             });
         });
      });
+
+     function desactivarActivar() {
+        if($('#CheckCompatiblesR').is(':checked')) {
+                e.preventDefault();
+                $('#CheckCompatiblesR').attr('disabled');
+            } else {
+                $('#CheckCompatiblesR').removeAttr('disabled');
+            }
+     }
 </script>
 </body>
 </html>

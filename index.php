@@ -16,6 +16,7 @@ if($_SESSION['sesion_exito'] != 1) {
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/jquery-3.6.1.min.js"></script>
     <link href="assets/css/styles.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="assets/img/logos/logoprin.png">
     <title>Inicio</title>
 </head>
 <body>
@@ -27,26 +28,26 @@ if($_SESSION['sesion_exito'] != 1) {
             ?>
             </div>
             <div class="col-10">
-                <div class="contenedor">
+                <div class="contenedor w-100 h-100">
                 <?php
                 include 'assets/php/menu/menu2.php';
                 ?>
-                    <div class="mensaje-bienvenida">
-                        <?php
+                <div class="mensaje-bienvenida w-100" style=" height: 60%;display:flex; align-items: center; justify-content: center;">
+                <?php
                             if($dataUser) {
                                 if($dataUser->genero == "F") {
                                     ?>
-                                    <p class="h1 display-4">Bienvenida <?php echo  $dataUser->nombre;?></p>
+                                    <p class="h2 display-4 text-animation typing-animation">Bienvenida <?php echo  $dataUser->nombre;?></p>
                                     <?php
                                 } else {
                                     ?>
-                                    <p class="h1 display-4">Bienvenido <?php echo  $dataUser->nombre;?></p>
+                                    <p class="h2 display-4 text-animation typing-animation">Bienvenido <?php echo  $dataUser->nombre;?></p>
                                     <?php
                                 }
                             
                             }
                         ?>
-                    </div>
+                </div>
 
                     <div class="logosCompany" style="position:absolute; bottom: 0px; right: 0px; opacity: 0.9;">
                         <img src="assets/img/logos/logoceibal.png" alt="" width="150">
@@ -58,5 +59,57 @@ if($_SESSION['sesion_exito'] != 1) {
             </div>
         </div>
     </div>
+    <style>
+        body {
+	background: linear-gradient(-45deg, #FFFFFF, #04a19c, #2b69f2, #FFFFFF);
+	background-size: 400% 400%;
+	animation: gradient 30s ease infinite;
+	height: 100vh;
+}
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+        .text-animation{
+    border-right: 2px solid rgb(255, 255, 255, .75);
+    color: rgba(255, 255, 255, .75);
+    font-size: 4em;
+    text-align: center;
+    height: 11vh;
+    margin: 0 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+}
+
+.typing-animation{
+    animation: blinkCursor 500ms steps(40) infinite normal, typing 4s steps(40) 1s normal both;
+}
+@keyframes blinkCursor {
+    from{
+    border-color: rgba(255, 255, 255, .75);
+    }
+    to{
+    border-right-color: transparent;
+    }
+}
+
+@keyframes typing {
+    from{
+    width: 0;
+    }
+    to{
+    width: 10em;
+    }
+}
+    </style>
 </body>
 </html>

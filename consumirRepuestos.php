@@ -20,6 +20,7 @@ if($_SESSION['sesion_exito'] != 1) {
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/css/styles.css" rel="stylesheet" />
     <script src="assets/js/jquery-3.6.1.min.js"></script>
+    <link rel="shortcut icon" href="assets/img/logos/logoprin.png">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 
@@ -38,76 +39,75 @@ if($_SESSION['sesion_exito'] != 1) {
 </head>
 <body>
     <div class="container-fluid">
-            <div class="row">
+        <div class="row">
                 <!-- -------------------------------------------------------------- Menu -------------------------------------------------------------- -->
-                <div class="col-2" style="padding-left: 0;">
+            <div class="col-2" style="padding-left: 0;">
                 <?php
                     include 'assets/php/menu/menu.php';
                 ?>
-                </div>
+            </div>
                 <!-- -------------------------------------------------------------- Fin Menu -------------------------------------------------------------- -->
                 
                 <!-- -------------------------------------------------------------- Contenedor Principal -------------------------------------------------------------- -->
-                <div class="col-10">
+            <div class="col-10">
                 <?php
                 include 'assets/php/menu/menu2.php';
                 ?>
-                <div class="dropdown btn-group" style="position:relative; top: 30px; left: 50px;">
-                    <a class="btn border-success dropdown-toggle btn-lg" href="#" id="resultadoConsumo" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
-                        Seleccionar acción
-                    </a>
+            <div class="dropdown btn-group" style="position:relative; top: 30px; left: 50px;">
+                <a class="btn border-success dropdown-toggle btn-lg" href="#" id="resultadoConsumo" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                    Seleccionar acción
+                </a>
 
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                        <li><button class="btn dropdown-item btn-lg" id="consumirRep" type="button" onclick="mostrarConsumirODevolver('consumirRep')">Consumir Repuestos</button></li>
-                        <li><button class="btn dropdown-item btn-lg" id="devolverRep" type="button" onclick="mostrarConsumirODevolver('devolverRep')">Devolver Repuestos</button></li>
-                    </ul>
-                </div>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <li><button class="btn dropdown-item btn-lg" id="consumirRep" type="button" onclick="mostrarConsumirODevolver('consumirRep')">Consumir Repuestos</button></li>
+                    <li><button class="btn dropdown-item btn-lg" id="devolverRep" type="button" onclick="mostrarConsumirODevolver('devolverRep')">Devolver Repuestos</button></li>
+                </ul>
+            </div>
 
                 
-                    <div class="w-100 font-weight-bold" style="display: flex; height: 75%;justify-content: center; align-items: center; font-size: 23px;">
+            <div class="w-100 font-weight-bold" style="display: flex; height: 75%;justify-content: center; align-items: center; font-size: 23px;">
                         
                         <!-- -------------------------------------------------------------- Consumo Repuestos -------------------------------------------------------------- -->
                         
-                        <div class="col-7 m-2 d-none" id="consumirRepuesto" style="display: inline-block;">
-                            <form id="consumirForm">
-                                <div class="form-group row">
-                                    <label for="staticEmail" class="col-sm-3 col-form-label">Usuario</label>
-                                    <div class="col-sm-9 mb-4">
+                <div class="col-7 m-2 d-none" id="consumirRepuesto" style="display: inline-block;">
+                    <form id="consumirForm">
+                        <div class="form-group row">
+                            <label for="staticEmail" class="col-sm-3 col-form-label">Usuario</label>
+                                <div class="col-sm-9 mb-4">
                                     <input type="text" readonly class="form-control-plaintext" name="nombre" id="staticName" value="<?php echo $dataUser->nombre_u; ?>">
-                                    </div>
                                 </div>
-                                <div class="form-group row">
-                                     <label for="inputRepuesto" class="col-sm-3 col-form-label mr-5">Repuesto</label>
-                                    <div class="col-sm-9 mb-3">
+                            </div>
+                            <div class="form-group row">
+                                <label for="inputRepuesto" class="col-sm-3 col-form-label mr-5">Repuesto</label>
+                                <div class="col-sm-9 mb-3">
                                     <input type="text" class="form-control codeConsum" id="inputRepuesto" name="code" placeholder="Código del repuesto" pattern="[0,9]">
-                                    </div>
                                 </div>
-                                <div class="form-group row">
-                                    <label for="selectTipoStock" class="col-sm-3 col-form-label mr-5">Tipo de Stock</label>
-                                    <div class="col-sm-9 mb-5">
-                                        <select class="form-select" id="selectTipoStock">
-                                            <option value="" selected>Selecciona el tipo de Stock</option>
-                                            <?php foreach($obtenerTipoStock as $tipoStock) { ?>
-                                                <option value="<?php echo $tipoStock->id_stock ?>"><?php echo $tipoStock->nameTipoStock ?></option>
-                                            <?php } ?>
-                                        </select>
-                                    </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="selectTipoStock" class="col-sm-3 col-form-label mr-5">Tipo de Stock</label>
+                                <div class="col-sm-9 mb-5">
+                                    <select class="form-select" id="selectTipoStock">
+                                        <option value="" selected>Selecciona el tipo de Stock</option>
+                                        <?php foreach($obtenerTipoStock as $tipoStock) { ?>
+                                            <option value="<?php echo $tipoStock->id_stock ?>"><?php echo $tipoStock->nameTipoStock ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
 
-                                </div>
-                                <input type="button" class="btn btn-success consumRep w-100" id="buttonOper" value="Consumir Repuesto"/>
-                            </form>
-                            <div class="alert alert-success text-center m-3 d-none" id="messageRep" role="alert"></div>
-                        </div>
+                            </div>
+                            <input type="button" class="btn btn-success consumRep w-100" id="buttonOper" value="Consumir Repuesto"/>
+                    </form>
+                    <div class="alert alert-success text-center m-3 d-none" id="messageRep" role="alert"></div>
+                </div>
 
                         <!-- -------------------------------------------------------------- Fin Consumo Repuestos -------------------------------------------------------------- -->
                         
-                        <div class="logosCompany" style="position:absolute; bottom: 0px; right: 0px; opacity: 0.9;">
-                            <img src="assets/img/logos/logoceibal.png" alt="" width="150">
-                            <img src="assets/img/logos/logosonda.png" alt="" width="150">
-                        </div>
-                    </div>
+                <div class="logosCompany" style="position:absolute; bottom: 0px; right: 0px; opacity: 0.9;">
+                    <img src="assets/img/logos/logoceibal.png" alt="" width="150">
+                    <img src="assets/img/logos/logosonda.png" alt="" width="150">
                 </div>
             </div>
+        </div>
     </div>
 
 

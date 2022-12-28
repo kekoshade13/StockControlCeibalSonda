@@ -26,14 +26,8 @@ if(!empty($_POST['funcion'])) {
                 $newCodigo = $_POST['newCode'];
                 $newNameCode = $_POST['newNombre'];
                 $newRepEquipo = $_POST['newRepEquipo'];
-
-                if(!empty($_POST['eqComp'])) {
-                    $eqComp = $_POST['eqComp'];
-                } else {
-                    $eqComp = "";
-                }
         
-                inventoryClass::addNewRepuesto($newCodigo, $newNameCode, $newRepEquipo, $eqComp);
+                inventoryClass::addNewRepuesto($newCodigo, $newNameCode, $newRepEquipo);
             }
             break;
         case 'reduceStock':
@@ -87,7 +81,37 @@ if(!empty($_POST['funcion'])) {
             inventoryClass::obtenerMovimientos($nombre, $fechaI, $fechaF, $code, $tipoMov, $tipoStoc);
             break;
         case 'filtrarMovimientosGenerales':
-            inventoryClass::obtenerMovimientosGenerales();
+            if(!empty($_POST['nombre_u'])) {
+                $nombre1 = $_POST['nombre_u'];
+            } else {
+                $nombre1 = '';
+            }
+            if(!empty($_POST['dateIni'])) {
+                $fechaI1 = $_POST['dateIni'];
+            } else {
+                $fechaI1 = '';
+            }
+            if(!empty($_POST['dateFin'])) {
+                $fechaF1 = $_POST['dateFin'];
+            } else {
+                $fechaF1 = '';
+            }
+            if(!empty($_POST['code'])) {
+                $code1 = $_POST['code'];
+            } else {
+                $code1 = '';
+            }
+            if(!empty($_POST['tipoMovi'])) {
+                $tipoMov1 = $_POST['tipoMovi'];
+            } else {
+                $tipoMov1 = '';
+            }
+            if(!empty($_POST['tipoStoc'])) {
+                $tipoStoc1 = $_POST['tipoStoc'];
+            } else {
+                $tipoStoc1 = '';
+            }
+            inventoryClass::obtenerMovimientosGenerales($nombre1, $fechaI1, $fechaF1, $code1, $tipoMov1, $tipoStoc1);
             break;
         case 'filtrarInventario':
             if(!empty($_POST['code'])) {
@@ -118,64 +142,71 @@ if(!empty($_POST['funcion'])) {
 
 class inventoryClass {
 
-    public static $pagina = 0;
-    public static $paginas = 0;
-    public static $productosPorPagina = 0;
-    public static $conteo = 0;
-
     public function __construct(int $pagina, int $paginas, int $productosPorPagina, int $conteo) {
-        $this->pagina = $pagina;
-        $this->paginas = $paginas;
-        $this->productosPorPagina = $productosPorPagina;
-        $this->conteo = $conteo;
     }
     
     public static function obtenerInventario($codigo, $modelo, $compatible, $tipoStock) {
         try {
             $db = getDB();
 
-            self::$pagina = isset($_GET['pag']) ? (int)$_GET['pag'] : 1;
-
-            self::$productosPorPagina = 8;
-
-            $inicio  = (self::$pagina>1) ? ((self::$pagina * self::$productosPorPagina)-self::$productosPorPagina) : 0;
-
             $registros = "SELECT * FROM SpareParts";
+            $registroComp = "select * from spareparts";
 
-            if(!empty($modelo)) {
-                $registros .= " as sp inner join equipos as eq on sp.id_equip=eq.id_equipo where sp.id_equip = $modelo";
+            //Obtener id de un codigo especifico.
+            if(!empty($codigo)) {
+                $codeRepInv = $db->prepare("SELECT * FROM SpareParts where code = $codigo");
+                $codeRepInv->execute([$codigo]);
+
+                $countCode = $codeRepInv->rowCount();
+                if($countCode > 0) {
+                    $codeRepInv = $codeRepInv->fetch();
+                    $idCodigo = $codeRepInv['id_code'];
+                } else {
+                    $codigo = '';
+                }
             }
-
-            if(!empty($codigo) && !empty($modelo)) {
-                $registros .= " and code = $codigo";
-            } else if(!empty($codigo)){
-                $registros .= " where code = ".$codigo;
+            if(empty($compatible)) {
+                $registros .= " as sp inner join repuestos_estados as repE inner join tipoStock as ts on repE.id_repuesto=sp.id_code and repE.id_estado=ts.id_stock";
+                //Filtros funcionales de a uno.
+                if(!empty($codigo) && !empty($modelo) && !empty($tipoStock)) {
+                    $registros .= " where repE.id_repuesto = $idCodigo and sp.id_equip = $modelo and ts.id_stock = $tipoStock";
+                } else if(!empty($codigo) && !empty($modelo)) {
+                    $registros .= " where repE.id_repuesto like $idCodigo and sp.id_equip = $modelo";
+                } else if(!empty($modelo) && !empty($tipoStock)) {
+                    $registros .= " where sp.id_equip = $modelo and ts.id_stock = $tipoStock";
+                } else if(!empty($codigo) && !empty($tipoStock)) {
+                    $registros .= " where ts.id_stock = $tipoStock and repE.id_repuesto = $idCodigo";
+                } else if(!empty($codigo)) {
+                    $registros .= " where repE.id_repuesto like $idCodigo";
+                } else if(!empty($tipoStock)) {
+                    $registros .= " where ts.id_Stock = $tipoStock";
+                } else if(!empty($modelo) && !empty($tipoStock)) {
+                    $registros .= " where sp.id_equip = $modelo and ts.id_stock = $tipoStock";
+                } else if(!empty($modelo)) {
+                    $registros .= " where sp.id_equip = $modelo";
+                }
+                // Fin filtros   
+                
+                $registros = $db->prepare($registros);
+    
+                $registros->execute();
+    
+                $registros = $registros->fetchAll();
             }
-
-            if(!empty($tipoStock) && !empty($modelo)) {
-                $registros .= " and tipostock = $tipoStock";
-            } else if(!empty($tipoStock) && !empty($codigo)) {
-                $registros .= " and tipostock = $tipoStock";
-            } else if(!empty($tipoStock)) {
-                $registros .= " where tipostock = $tipoStock";
-            }
-
             if(!empty($compatible)) {
-                $registroComp = $db->prepare('select * from spareparts as sp inner join equipos_repuestos as eqR inner join equipos as eq on eqR.repuesto_id=sp.id_code and eqR.equipo_id=eq.id_equipo where eqR.repuesto_id;
-                ');
+                $registroComp = "select * from spareparts as sp inner join equipos_repuestos as eqR inner join equipos as eq  on eqR.repuesto_id=sp.id_code and eqR.equipo_id=eq.id_equipo";
+            
+                if(!empty($codigo) && !empty($modelo)) {
+                    $registroComp .= " where eqR.repuesto_id = $idCodigo and eqR.equipo_id = $modelo";
+                } else if(!empty($codigo)) {
+                    $registroComp .= " where eqR.repuesto_id = $idCodigo";
+                } else if(!empty($modelo)) {
+                    $registroComp .= " where eqR.equipo_id = $modelo";
+                }
+                $registroComp = $db->prepare($registroComp);
                 $registroComp->execute();
                 $registroComp = $registroComp->fetchAll();
-
             }
-
-            $registros .= " as sp inner join repuestos_estados as repE inner join tipoStock as ts on repE.id_repuesto=sp.id_code and repE.id_estado=ts.id_stock where repE.id_repuesto";
-
-            $registros = $db->prepare($registros);
-
-            $registros->execute();
-
-            $registros = $registros->fetchAll();
-
             $tabla = '<table class="table table-striped">
             <thead>
             <th>Código</th>
@@ -188,28 +219,27 @@ class inventoryClass {
                 <th>Tipo de Stock</th>
                 </thead><tbody>';
             }
-            
-            foreach($registros as $reg) {
-                $tabla .= '<tr>
-                    <td>'.$reg['code'].'</td>
-                    <td>'.$reg['name'].'</td>';
-                    if(!empty($compatible)) {
-                        foreach($registroComp as $regComp) {
-                        $nameEq = inventoryClass::obtenerUnEquipo($regComp['id_equipo']);
-                        foreach($nameEq as $name) {
-                            $tabla .= '<td>' . $name->name . '</td>';
-                        }
-                        
-                        }
-                    } else {
-                        $tabla .= '<td>'.$reg['qty'].'</td>';
-                        $tipoStock = inventoryClass::obtenerUnTipoStock($reg['id_stock']);
-                        foreach($tipoStock as $tStock) {
-                            $tabla .= '<td>'.$tStock->nameTipoStock.'</td>';
-                        }
-                    }
 
-                    $tabla .= '</tr>';
+            if(!empty($compatible)) {
+                foreach($registroComp as $regComp) {
+                    $tabla .= "<tr><td>".$regComp['code']."</td>
+                    <td>".$regComp['name']."</td>
+                    <td>".$regComp['nameEq']."</td>";
+                }
+
+                
+                $tabla .= "</tr>";
+            } else if(!empty($compatible) && !empty($codigo)) {
+
+            }
+
+            if(empty($compatible)) {
+                foreach($registros as $reg) {
+                    $tabla .= "<tr><td>" . $reg['code'] . "</td>
+                    <td>".$reg['name']."</td>
+                    <td>".$reg['qty']."</td>
+                    <td>".$reg['nameTipoStock']."</td></tr>";
+                }
             }
 
             $tabla .= '</tbody></table>';
@@ -217,6 +247,10 @@ class inventoryClass {
         } catch(PDOException $e) {
             echo '"error":{"text:"'. $e->getMessage().'}}';
         }
+    }
+
+    public static function obtenerInventarioCompatibles($codigo, $modelo, $compatible, $tipoStock) {
+
     }
 
     public static function obtenerMovimientos($nombre_u, $fechaI, $fechaF, $codigo, $tipoMov, $tipoStoc) {
@@ -278,20 +312,94 @@ class inventoryClass {
         }
     }
 
-    public static function obtenerMovimientosGenerales() {
+    public static function obtenerMovimientosGenerales($nombre_u, $fechaI, $fechaF, $codigo, $tipoMov, $tipoStoc) {
         try {
             $db = getDB();
 
-            $registros = "SELECT SQL_CALC_FOUND_ROWS * FROM Movements";
+            $registros = "SELECT * FROM Movements";
 
-            if(!empty($fechaI)) {
-                $registros .= " AND date >= '".$fechaI."'";
-            }
-            if(!empty($fechaF)) {
-                $registros .= " AND date <= '".$fechaF."'";
-            }
-            if(!empty($codigo)) {
-                $registros .= " AND code LIKE ".$codigo;
+            if(!empty($fechaF) && !empty($fechaI) && !empty($codigo) && !empty($tipoMov) && !empty($tipoStoc) && !empty($nombre_u)) {
+                $registros .= " where date >= '".$fechaI."' and date <= '$fechaF' and code like $codigo and move = '$tipoMov' and tipoStock = '$tipoStoc' and nombre = '$nombre_u'";
+            } else if(!empty($fechaF) && !empty($nombre_u) && !empty($codigo) && !empty($tipoMov) && !empty($tipoStoc)) {
+                $registros .= " where code like $codigo and move = '$tipoMov' and tipoStock = '$tipoStoc' and nombre = '$nombre_u' and date <= '$fechaF'";
+            } else if(!empty($fechaI) && !empty($nombre_u) && !empty($codigo) && !empty($tipoMov) && !empty($tipoStoc)) {
+                $registros .= " where code like $codigo and move = '$tipoMov' and tipoStock = '$tipoStoc' and nombre = '$nombre_u' and date >= '$fechaI'";
+            } else if(!empty($fechaI) && !empty($fechaF) && !empty($tipoMov) && !empty($tipoStoc) && !empty($nombre_u)) {
+                $registros .= " where date >= '$fechaI' and date <= '$fechaF' and move = '$tipoMov' and tipoStock = '$tipoStoc' and nombre = '$nombre_u'";
+            } else if(!empty($fechaF) && !empty($fechaI) && !empty($codigo) && !empty($tipoMov) && !empty($tipoStoc)) {
+                $registros .= " where date >= '".$fechaI."' and date <= '$fechaF' and code like $codigo and move = '$tipoMov' and tipoStock = '$tipoStoc'";
+            } else if(!empty($fechaF) && !empty($fechaI) && !empty($codigo) && !empty($tipoMov)) {
+                $registros .= " where date >= '".$fechaI."' and date <= '$fechaF' and code like $codigo and move = '$tipoMov'";
+            } else if(!empty($fechaI) && !empty($codigo) && !empty($tipoMov) && !empty($tipoStoc)) {
+                $registros .= " where code like $codigo and move = '$tipoMov' and tipoStock = '$tipoStoc' and date >= '$fechaI'";
+            } else if(!empty($nombre_u) && !empty($codigo) && !empty($tipoMov) && !empty($tipoStoc)) {
+                $registros .= " where code like $codigo and move = '$tipoMov' and tipoStock = '$tipoStoc' and nombre = '$nombre_u'";
+            } else if(!empty($fechaI) && !empty($fechaF) && !empty($tipoMov) && !empty($tipoStoc)) {
+                $registros .= " where date >= '$fechaI' and date <= '$fechaF' and move = '$tipoMov' and tipoStock = '$tipoStoc'";
+            } else if(!empty($fechaI) && !empty($fechaF) && !empty($tipoStoc) && !empty(($nombre_u))) {
+                $registros .= " where date >= '$fechaI' and date <= '$fechaF' and tipoStock = '$tipoStoc' and nombre = '$nombre_u'";
+            } else if(!empty($nombre_u) && !empty($codigo) && !empty($tipoMov) && !empty($tipoStoc)) {
+                $registros .= " where nombre = '$nombre_u' and code like $codigo and move = '$tipoMov'";
+            } else if(!empty($fechaI) && !empty($tipoMov) && !empty($nombre_u)) {
+                $registros .= " where nombre = '$nombre_u' and move = '$tipoMov' and date >= '$fechaI'";
+            } else if(!empty($codigo) && !empty($fechaF) && !empty($fechaI)) {
+                $registros .= " where date >= '".$fechaI."' and date <= '$fechaF' and code like $codigo";
+            } else if(!empty($fechaI) && !empty($codigo) && !empty($tipoMov)) {
+                $registros .= " where code like $codigo and move = '$tipoMov' and date >= '$fechaI'";
+            } else if(!empty($tipoMov) && !empty($fechaF) && !empty($fechaI)) {
+                $registros .= " where date >= '".$fechaI."' and date <= '$fechaF' and move = '$tipoMov'";
+            } else if(!empty($tipoStoc) && !empty($fechaF) && !empty($fechaI)) {
+                $registros .= " where date >= '".$fechaI."' and date <= '$fechaF' and tipoStock = '$tipoStoc'";
+            } else if(!empty($codigo) && !empty($tipoMov) && !empty($tipoStoc)) {
+                $registros .= " WHERE code LIKE $codigo and move = '$tipoMov' and tipoStock = '$tipoStoc'";
+            } else if(!empty($nombre_u) && !empty($fechaF) && !empty($fechaI)) {
+                $registros .= " where date >= '".$fechaI."' and date <= '$fechaF' and nombre = '$nombre_u'";
+            } else if(!empty($nombre_u) && !empty($tipoMov) && !empty($codigo)) {
+                $registros .= " where code like $codigo and move = '$tipoMov' and nombre = '$nombre_u'";
+            } else if(!empty($fechaF) && !empty($codigo) && !empty($tipoMov)) {
+                $registros .= " where code like $codigo and move = '$tipoMov' and date <= '$fechaF'";
+            } else if(!empty($nombre_u) && !empty($tipoMov) && !empty($tipoStoc)) {
+                $registros .= " WHERE nombre = '$nombre_u' and move = '$tipoMov' and tipoStock = '$tipoStoc'";
+            } else if(!empty($nombre_u) && !empty($fechaI) && !empty($tipoStoc)) {
+                $registros .= " where date >= '$fechaI' and tipoStock = '$tipoStoc' and nombre = '$nombre_u'";
+            } else if(!empty($fechaI) && !empty($fechaF)) {
+                $registros .= " where date >= '$fechaI' and date <= '$fechaF'";
+            } else if(!empty($tipoMov) && !empty($tipoStoc)) {
+                $registros .= " where move = '$tipoMov' and tipoStock = '$tipoStoc'";
+            } else if(!empty($fechaI) and !empty($codigo)) {
+                $registros .= " where date >= '$fechaI' and code like $codigo";
+            } else if (!empty($fechaI) && !empty($tipoMov)) {
+                $registros .= " where date >= '$fechaI' and move = '$tipoMov'";
+            } else if(!empty($fechaI) && !empty($tipoStoc)) {
+                $registros .= " where date >= '$fechaI' and tipoStock = '$tipoStoc'";
+            } else if(!empty($fechaI) && !empty($nombre_u)) {
+                $registros .= " where nombre = '$nombre_u' and date >= '$fechaI'";
+            } else if (!empty($fechaF) && !empty($codigo)) {
+                $registros .= " where date <= '$fechaF' and code like $codigo";
+            } else if(!empty($fechaF) && !empty($tipoMov)) {
+                $registros .= " where date <= '$fechaF' and move = '$tipoMov'";
+            } else if(!empty($fechaF) && !empty($tipoStoc)) {
+                $registros .= " where date <= '$fechaF' and tipoStock = '$tipoStoc'";
+            } else if(!empty($fechaF) && !empty($nombre_u)) {
+                $registros .= " where nombre = '$nombre_u' and date <= '$fechaF'";
+            } else if(!empty($codigo) && !empty($nombre_u)) {
+                $registros .= " where code like $codigo and nombre = '$nombre_u'";
+            } else if(!empty($tipoMov) && !empty($nombre_u)) {
+                $registros .= " where move = '$tipoMov' and nombre = '$nombre_u'";
+            } else if(!empty($tipoStoc) && !empty($nombre_u)) {
+                $registros .= " where tipoStock = '$tipoStoc' and nombre = '$nombre_u'";
+            } else if(!empty($fechaI)) {
+                $registros .= " WHERE date >= '".$fechaI."'";
+            } else if(!empty($codigo)) {
+                $registros .= " WHERE code LIKE ".$codigo;
+            } else if(!empty($tipoMov)) {
+                $registros .= " WHERE move = '$tipoMov'";
+            } else if(!empty($tipoStoc)) {
+                $registros .= " WHERE tipoStock = '$tipoStoc'";
+            } else if(!empty($fechaF)) {
+                $registros .= " where date <= '$fechaF'";
+            } else if(!empty($nombre_u)) {
+                $registros .= " where nombre = '$nombre_u'";
             }
 
             $registros .= " order by date desc";
@@ -304,14 +412,17 @@ class inventoryClass {
 
             $tabla = '<table class="table table-striped">
             <thead>
+            <th>Usuario</th>
             <th>Código</th>
             <th>Tipo de Stock</th>
             <th>Movimiento</th>
             <th>Cantidad</th>
             <th>Fecha</th>
+            <th>Hora</th>
             </thead><tbody>';
             foreach($registros as $reg) {
-                $tabla .= '<tr><td>'.$reg['code'].'</td>';
+                $tabla .= '<tr><td>'.$reg['nombre'].'</td>
+                <td>'.$reg['code'].'</td>';
                 $obtenerTipoStock = inventoryClass::obtenerUnTipoStock($reg['tipoStock']);
                 foreach($obtenerTipoStock as $tipoStock) {
                     $tabla .= '<td>'.$tipoStock->nameTipoStock.'</td>';
@@ -319,6 +430,7 @@ class inventoryClass {
                 $tabla .= '<td>'.$reg['move'].'</td>
                     <td>'.$reg['qty'].'</td>
                     <td>'.$reg['date'].'</td>
+                    <td>'.$reg['hora'].'</td>
                     </tr>';
             }
 
@@ -337,14 +449,15 @@ class inventoryClass {
             
             $count = $stmt->rowCount();
             if($count > 0) {
-                $validEstado = $db->prepare("SELECT * FROM SpareParts WHERE code = ? and tipoStock = ?");
-                $validEstado->execute([$codigo, $tipoStock]);
+                $idCodigo = inventoryClass::obtenerDatosCodigos($codigo);
+                $validEstado = $db->prepare("SELECT * FROM repuestos_estados WHERE id_repuesto = ? and id_estado = ?");
+                $validEstado->execute([$idCodigo, $tipoStock]);
                 $countEstado = $validEstado->rowCount();
                 if($countEstado > 0) {
                     $cantidad = $validEstado->fetch(PDO::FETCH_OBJ);
                     if($cantidad->qty > 0) {
-                        $update = $db->prepare("UPDATE spareparts SET qty = qty - 1 where code = ? AND tipoStock = ?");
-                        $update->execute([$codigo, $tipoStock]);
+                        $update = $db->prepare("UPDATE repuestos_estados SET qty = qty - 1 where id_repuesto = ? AND id_estado = ?");
+                        $update->execute([$idCodigo, $tipoStock]);
                         date_default_timezone_set('America/Buenos_Aires');
 
                         $fecha = date('His');
@@ -373,16 +486,17 @@ class inventoryClass {
             $stmt->execute([$codigo]);
             
             $count = $stmt->rowCount();
+            $idCodigo = inventoryClass::obtenerDatosCodigos($codigo);
             $cantidad = $stmt->fetch(PDO::FETCH_OBJ);
             if($count > 0) {
-                $validEstado = $db->prepare("SELECT * FROM SpareParts WHERE code = ? and tipoStock = ?");
-                $validEstado->execute([$codigo, $tipoStock]);
+                $validEstado = $db->prepare("SELECT * FROM repuestos_estados WHERE id_repuesto = ? and id_estado = ?");
+                $validEstado->execute([$idCodigo, $tipoStock]);
                 $countEstado = $validEstado->rowCount();
-
+                $cantidadTR = $validEstado->fetch(PDO::FETCH_OBJ);
                 if($countEstado > 0) {
-                    if($cantidad->qty >= 0) {
-                        $update = $db->prepare("UPDATE spareparts SET qty = qty + 1 where code = ? AND tipoStock = ?");
-                        $update->execute([$codigo, $tipoStock]);
+                    if($cantidadTR->qty >= 0) {
+                        $update = $db->prepare("UPDATE repuestos_estados SET qty = qty + 1 where id_repuesto = ? AND id_estado = ?");
+                        $update->execute([$idCodigo, $tipoStock]);
                         
                         date_default_timezone_set('America/Buenos_Aires');
 
@@ -409,7 +523,7 @@ class inventoryClass {
         }
     }
 
-    public static function addNewRepuesto($code, $name, $equipo, $eqComp) {
+    public static function addNewRepuesto($code, $name, $equipo) {
         $db = getDB();
 
         try {
@@ -419,10 +533,10 @@ class inventoryClass {
             $count = $verify->rowCount();
 
             if($count > 0) {
-                echo json_encode(0);
+                echo json_encode(2);
             } else {
-                $stmt = $db->prepare("INSERT INTO SpareParts (code, name, id_equip, id_equip_comp, tipoStock) VALUES (?, ?, ?, ?, 1)");
-                $stmt->execute([$code, $name, $equipo, $eqComp]);
+                $stmt = $db->prepare("INSERT INTO SpareParts (code, name, id_equip) VALUES (?, ?, ?)");
+                $stmt->execute([$code, $name, $equipo]);
                 if($stmt) {
                     echo json_encode(1);
                 } else {
@@ -437,47 +551,32 @@ class inventoryClass {
     public static function reducirStock($code, $qty, $tipoStock) {
         $db = getDB();
         try {
-            $consulta = $db->prepare("SELECT * FROM SpareParts WHERE code = ?");
-            $consulta->execute([$code]);
-            $count = $consulta->rowCount();
-            $dataStock = $consulta->fetch(PDO::FETCH_OBJ);
+            $stmt = $db->prepare("SELECT * FROM SpareParts WHERE code = ?");
+            $stmt->execute([$code]);
+
+            $count = $stmt->rowCount();
+            $resultData = $stmt->fetch();
+
             if($count > 0) {
-                $verificarEstado = $db->prepare("select * from spareparts where code = ? and tipoStock = ?");
-                $verificarEstado->execute([$code, $tipoStock]);
-                $countEst = $verificarEstado->rowCount();
+                $stmt1 = $db->prepare("SELECT * FROM repuestos_estados WHERE id_repuesto = ? AND id_estado = ?");
+                $stmt1->execute([$resultData['id_code'], $tipoStock]);
 
-                if($countEst > 0) {
-                    $actualizarCantidad = $db->prepare("UPDATE SpareParts SET qty = qty - $qty WHERE code = $code AND tipoStock = $tipoStock");
-                    $actualizarCantidad->execute();
+                $countRE = $stmt1->rowCount();
 
-                    if($actualizarCantidad) {
+                if($countRE > 0) {
+                    $stateRepAument = $stmt1->fetch();
+                    if($stateRepAument['qty'] >= 0 && $stateRepAument['qty'] >= $qty) {
+                        $stmt2 = $db->prepare("UPDATE repuestos_estados SET qty = qty - $qty WHERE id = ?");
+                        $stmt2->execute([$stateRepAument['id']]);
                         echo json_encode(1);
                     } else {
-                        echo json_encode(0);
+                        echo json_encode(2);
                     }
                 } else {
-                    $codigo = $dataStock->code;
-                    $name = $dataStock->name;
-                    $id_equipo = $dataStock->id_equip;
-                    $id_equipo_comp = $dataStock->id_equip_comp;
-
-                    $crearTipoStock = $db->prepare("INSERT INTO SpareParts (code, name, id_equip, id_equip_comp, tipoStock) VALUES (?, ?, ?, ?, ?)");
-                    $crearTipoStock->execute([$codigo, $name, $id_equipo, $id_equipo_comp, $tipoStock]);
-
-                    if($crearTipoStock) {
-                        $actualizarCantidad = $db->prepare("UPDATE SpareParts SET qty = qty - $qty WHERE code = $code AND tipoStock = $tipoStock");
-                        $actualizarCantidad->execute();
-                        if($actualizarCantidad) {
-                            echo json_encode(1);
-                        } else {
-                            echo json_encode(0);
-                        }
-                    } else {
-                        echo json_encode(0);
-                    }
+                    echo json_encode(3);
                 }
             } else {
-                echo json_encode(0);
+                echo json_encode(3);
             }
         } catch(PDOException $e) {
             echo $e->getMessage();
@@ -487,47 +586,45 @@ class inventoryClass {
     public static function aumentarStock($code, $qty, $tipoStock) {
         $db = getDB();
         try {
-            $consulta = $db->prepare("SELECT * FROM SpareParts WHERE code = ?");
-            $consulta->execute([$code]);
-            $count = $consulta->rowCount();
-            $dataStock = $consulta->fetch(PDO::FETCH_OBJ);
+            $stmt = $db->prepare("SELECT * FROM SpareParts WHERE code = ?");
+            $stmt->execute([$code]);
+
+            $count = $stmt->rowCount();
+            $resultData = $stmt->fetch();
+
             if($count > 0) {
-                $verificarEstado = $db->prepare("select * from spareparts where code = ? and tipoStock = ?");
-                $verificarEstado->execute([$code, $tipoStock]);
-                $countEst = $verificarEstado->rowCount();
+                $stmt1 = $db->prepare("SELECT * FROM repuestos_estados WHERE id_repuesto = ? AND id_estado = ?");
+                $stmt1->execute([$resultData['id_code'], $tipoStock]);
 
-                if($countEst > 0) {
-                    $actualizarCantidad = $db->prepare("UPDATE SpareParts SET qty = qty + $qty WHERE code = $code AND tipoStock = $tipoStock");
-                    $actualizarCantidad->execute();
+                $countRE = $stmt1->rowCount();
 
-                    if($actualizarCantidad) {
-                        echo json_encode(1);
-                    } else {
-                        echo json_encode(0);
-                    }
+                if($countRE > 0) {
+                    $stateRepAument = $stmt1->fetch();
+                    $stmt2 = $db->prepare("UPDATE repuestos_estados SET qty = qty + $qty WHERE id = ?");
+                    $stmt2->execute([$stateRepAument['id']]);
+                    echo json_encode(1);
                 } else {
-                    $codigo = $dataStock->code;
-                    $name = $dataStock->name;
-                    $id_equipo = $dataStock->id_equip;
-                    $id_equipo_comp = $dataStock->id_equip_comp;
+                    $stmt3 = $db->prepare("INSERT INTO repuestos_estados (id_repuesto, id_estado, qty) VALUES (?, ?, 0)");
+                    $stmt3->execute([$resultData['id_code'], $tipoStock]);
 
-                    $crearTipoStock = $db->prepare("INSERT INTO SpareParts (code, name, id_equip, id_equip_comp, tipoStock) VALUES (?, ?, ?, ?, ?)");
-                    $crearTipoStock->execute([$codigo, $name, $id_equipo, $id_equipo_comp, $tipoStock]);
+                    $stmt4 = $db->prepare("SELECT * FROM repuestos_estados WHERE id_repuesto = ? AND id_estado = ?");
+                    $stmt4->execute([$resultData['id_code'], $tipoStock]);
 
-                    if($crearTipoStock) {
-                        $actualizarCantidad = $db->prepare("UPDATE SpareParts SET qty = qty + $qty WHERE code = $code AND tipoStock = $tipoStock");
-                        $actualizarCantidad->execute();
-                        if($actualizarCantidad) {
-                            echo json_encode(1);
-                        } else {
-                            echo json_encode(0);
-                        }
+                    $countRE1 = $stmt4->rowCount();
+
+                    if($countRE1 > 0) {
+                        $newStateRep = $stmt4->fetch();
+                        $idRepEst = $newStateRep['id'];
+                        $stmt5 = $db->prepare("UPDATE repuestos_estados SET qty = qty + $qty WHERE id = ?");
+                        $stmt5->execute([$idRepEst]);
+
+                        echo json_encode(2);
                     } else {
                         echo json_encode(0);
                     }
                 }
             } else {
-                echo json_encode(0);
+                echo json_encode(3);
             }
         } catch(PDOException $e) {
             echo $e->getMessage();
@@ -606,6 +703,25 @@ class inventoryClass {
         }
     }
 
+    public static function obtenerDatosCodigos($code)
+    {
+        $db = getDB();
+
+        try {
+            $stmt = $db->prepare("SELECT * FROM SpareParts where code = ?");
+            $stmt->execute([$code]);
+
+            $countCode = $stmt->rowCount();
+            if($countCode > 0) {
+                $stmt = $stmt->fetch();
+                $idCodigo = $stmt['id_code'];
+                return $idCodigo;
+            }
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
+    }
+        
 }
 
 ?>

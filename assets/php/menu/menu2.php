@@ -5,7 +5,7 @@
                 <ul class="navbar-nav" style="position: absolute; left: 80%; top: 5%;">
                     <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="assets/img/img_perfil/<?php echo $dataUser->nombre_u; ?>/<?php echo $dataUser->nombre_u?>.jpeg" alt="" width="35">    
+                    <img src="assets/img/img_perfil/<?php echo $dataUser->nombre_u; ?>/<?php echo $dataUser->nombre_u?>.jpeg" alt="" width="35" style="width: 40px; height: 40px;border-radius: 100px;">    
                     <?php echo $dataUser->nombre." ".$dataUser->apellido ?>
                     </a>
                     <ul class="dropdown-menu">

@@ -18,6 +18,7 @@ if(!$connectAdmin->class == "Admin") {
     <title>Reportes</title>
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/css/styles.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="../assets/img/logos/logoprin.png">
 </head>
 <body>
     <div class="container-fluid">
@@ -26,22 +27,20 @@ if(!$connectAdmin->class == "Admin") {
                 <div class="col-2" style="padding-left: 0;">
                     <div class="nav-MenuVert">
                         <nav class="navbar navbar-expand d-flex flex-column align-items-start" id="sidebar">
-                        <a href="../index.php" class="navbar-brand text-light mt-5 d-block mx-auto">
+                        <img src="../assets/img/logos/logoprin.png" alt="" width="200" height="150">
+                        <a href="index.php" class="navbar-brand text-light d-block mx-auto">
                                 <div class="display-6" style="font-size: 30px;">StockControl
                                 </div>
+                                <p class="text-center" style="font-size: 15px;">Administrador</p>
                             </a>
                             <ul class="navbar-nav d-flex flex-column mt-5 w-100">
                                 <li class="nav-item w-100 mt-3">
                                     <a href="movimientos.php" class="nav-link text-light pl-4">Movimientos Generales</a>
                                 </li>
                                 <li class="nav-item w-100 mt-3">
-                                    <a href="../inventario.php" class="nav-link text-light pl-4">Inventario</a>
-                                </li>
-                                
-                                <li class="nav-item w-100 mt-3">
                                     <a href="../admin/reportes.php" class="nav-link text-light pl-4">Reportes</a>
                                 </li>
-                                <li class="nav-item w-100" style="margin-top: 100%;">
+                                <li class="nav-item w-100" style="margin-top: 30%;">
                                     <a href="../index.php" class="nav-link text-light pl-4">Volver</a>
                                 </li>
                             </ul>
@@ -58,7 +57,8 @@ if(!$connectAdmin->class == "Admin") {
                                     <ul class="navbar-nav" style="position: absolute; left: 80%; top: 5%;">
                                         <li class="nav-item dropdown">
                                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <?php echo $connectAdmin->nombre." ".$connectAdmin->apellido ?>
+                                        <img src="../assets/img/img_perfil/<?php echo $connectAdmin->nombre_u; ?>/<?php echo $connectAdmin->nombre_u?>.jpeg" alt="" width="35" style="width: 40px; height: 40px;border-radius: 100px;">     
+                                        <?php echo $connectAdmin->nombre." ".$connectAdmin->apellido ?>
                                         </a>
                                         <ul class="dropdown-menu">
                                             <li><a class="dropdown-item" href="../logout.php">Cerrar Sesión</a></li>

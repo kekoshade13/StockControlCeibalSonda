@@ -21,6 +21,10 @@ if(!$connectAdmin->class == "Admin") {
     <title>Panel de administracion</title>
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/css/styles.css" rel="stylesheet" />
+    <script src="../assets/js/jquery-3.6.1.min.js"></script>
+    <link rel="shortcut icon" href="../assets/img/logos/logoprin.png">
+    <link href="../assets/css/toastr.css" rel="stylesheet"/>
+    <script type="text/javascript" src="../assets/js/toastr.min.js"></script>
 <body>
     <div class="container-fluid">
             <div class="row">
@@ -28,22 +32,20 @@ if(!$connectAdmin->class == "Admin") {
                 <div class="col-2" style="padding-left: 0;">
                     <div class="nav-MenuVert">
                         <nav class="navbar navbar-expand d-flex flex-column align-items-start" id="sidebar">
-                            <a href="../index.php" class="navbar-brand text-light mt-5 d-block mx-auto">
+                        <img src="../assets/img/logos/logoprin.png" alt="" width="200" height="150">
+                            <a href="index.php" class="navbar-brand text-light d-block mx-auto">
                                 <div class="display-6" style="font-size: 30px;">StockControl
                                 </div>
+                                <p class="text-center" style="font-size: 15px;">Administrador</p>
                             </a>
                             <ul class="navbar-nav d-flex flex-column mt-5 w-100">
                                 <li class="nav-item w-100 mt-3">
                                     <a href="movimientos.php" class="nav-link text-light pl-4">Movimientos Generales</a>
                                 </li>
                                 <li class="nav-item w-100 mt-3">
-                                    <a href="../inventario.php" class="nav-link text-light pl-4">Inventario</a>
-                                </li>
-                                
-                                <li class="nav-item w-100 mt-3">
                                     <a href="../admin/reportes.php" class="nav-link text-light pl-4">Reportes</a>
                                 </li>
-                                <li class="nav-item w-100" style="margin-top: 100%;">
+                                <li class="nav-item w-100" style="margin-top: 30%;">
                                     <a href="../index.php" class="nav-link text-light pl-4">Volver</a>
                                 </li>
                             </ul>
@@ -61,7 +63,8 @@ if(!$connectAdmin->class == "Admin") {
                                 <ul class="navbar-nav" style="position: absolute; left: 80%; top: 5%;">
                                     <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <?php echo $connectAdmin->nombre." ".$connectAdmin->apellido ?>
+                                    <img src="../assets/img/img_perfil/<?php echo $connectAdmin->nombre_u; ?>/<?php echo $connectAdmin->nombre_u?>.jpeg" alt="" width="35" style="width: 40px; height: 40px;border-radius: 100px;">     
+                                    <?php echo $connectAdmin->nombre." ".$connectAdmin->apellido ?>
                                     </a>
                                     <ul class="dropdown-menu">
                                         <li><a class="dropdown-item" href="../logout.php">Cerrar Sesión</a></li>
@@ -117,7 +120,7 @@ if(!$connectAdmin->class == "Admin") {
                         <!-- -------------------------------------------------------------- Gestion Usuarios -------------------------------------------------------------- -->
                         <center>
                         <div class="col-8 m-2 d-none" id="anadirUsuario" style="display: inline-block;">
-                            <form>
+                            <form enctype="multipart/form-data" id="formAddUser">
                                 <div class="form-group row">
                                     <h5 class="display-5 mb-5">Registro de Usuarios</h1>
                                     <div class="col-sm-6 mb-4">
@@ -132,14 +135,13 @@ if(!$connectAdmin->class == "Admin") {
                                         <input type="text" class="form-control" id="inputUsuario" name="nombre_u" placeholder="Ingresa el nombre de usuario">
                                     </div>
 
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-6 mb-4">
                                     <input type="password" class="form-control" id="inputContrasenia" name="contrasenia" placeholder="Ingresa la contraseña">
                                     </div>
                                     
-                                    <div class="col-sm-6 mb-2">
-                                        <input type="text" class="form-control val" id="inputCedula" name="cedula" placeholder="Ingresa la cedula">
-                                        <small id="cedulaInfo" class="form-text text-muted" style="font-size: 18px;">Ingresa la cedula sin punto ni guión.</small>
-                                    </div>
+                                    <div class="col-sm-6 mb-4">
+                                        <input type="text" class="form-control val" id="inputCedula" name="cedula" placeholder="Ingresa la cedula sin punto ni guión."> 
+                                   </div>
 
                                     <div class="col-sm-6 mb-2">
                                         <select class="form-select" id="selectGenero">
@@ -149,13 +151,13 @@ if(!$connectAdmin->class == "Admin") {
                                         </select>
                                     </div>
 
-                                    <div class="col-sm-6 mb-2">
-                                        <input type="file" class="form-control" id="inputImageProfile" />
+                                    <div class="col-sm-6 mb-4">
+                                        <input type="file" class="form-control" id="inputImageProfile" name="inputImageProfile"/>
                                     </div>
 
                                     <div class="form-check col-sm-6">
-                                        <input class="form-check-input" type="checkbox" value="" id="isAdmin">
-                                        <label class="form-check-label" for="isAdmin">
+                                        <input class="form-check-input" type="checkbox" value="" id="isAdmin" style="margin-left: 4rem!important;">
+                                        <label class="form-check-label" for="isAdmin" style="margin-left: -4.5rem;">
                                             Administrador
                                         </label>
                                     </div>
@@ -282,19 +284,10 @@ if(!$connectAdmin->class == "Admin") {
                                             <select name="select_equipo" id="seleccion_Equipo" class="form-select">
                                                 <option selected value="">Selecciona el Equipo</option>
                                                 <?php foreach($obtenerEquipos as $equipo): ?>
-                                                <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->nameEquipos ?></option>
+                                                <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->nameEq ?></option>
                                                 <?php endforeach; ?>
                                             </select>
-                                        </div>
-                                        <div class="col-sm-4 mb-3 selectpicker" id="selectRepComp">
-                                            <select multiple name="select_equipoComp" id="seleccion_EquipoComp" class="form-select" data-live-search="true">
-                                                <option selected value="">Equipo Compatible</option>
-                                                <?php foreach($obtenerEquipos as $equipo): ?>
-                                                <option value="<?php echo $equipo->id_equipo ?>"><?php echo $equipo->nameEquipos ?></option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
-                                        
+                                        </div>          
                                     </div>
                                 </div>
                                 <input type="button" class="btn btn-success w-100 mb-2 btnAddNewRepuest" value="Añadir Nuevo Repuesto" />
@@ -321,6 +314,28 @@ if(!$connectAdmin->class == "Admin") {
     <script src="../assets/js/popper.min.js"></script>
 
     <script>
+
+        $(document).ready(function() {
+            toastr.options = {
+                'closeButton': true,
+                'debug': false,
+                'newestOnTop': false,
+                'progressBar': false,
+                'positionClass': 'toast-top-right',
+                'preventDuplicates': false,
+                'showDuration': '1000',
+                'hideDuration': '1000',
+                'timeOut': '5000',
+                'extendedTimeOut': '1000',
+                'showEasing': 'swing',
+                'hideEasing': 'linear',
+                'showMethod': 'fadeIn',
+                'hideMethod': 'fadeOut',
+            }
+        });
+
+
+
         // Gestion Usuarios
         var formAddUser = document.getElementById('anadirUsuario');
         var formMostrarUser = document.getElementById('mostrarUser');
@@ -404,16 +419,17 @@ if(!$connectAdmin->class == "Admin") {
                     var genero = document.getElementById('selectGenero').value;
                     var isAdmin = "";
 
+                    var formData = new FormData();
+                    var files = $('#inputImageProfile')[0].files[0];
+                    formData.append('file', files);
+
                     if($('#isAdmin').is(':checked')) {
                         isAdmin = "Admin";
                     }
 
                     if(nombre.trim() != "" && apellido.trim() != "" && nombreUser.trim() != "" && contrasenia.trim() != "" && cedula.trim() != "" && genero.trim() != "") {
                         if(cedula.length < 8 || cedula.length > 8) {
-                            responseMessage.classList.remove('d-none');
-                            responseMessage.classList.remove('alert-success');
-                            responseMessage.classList.add('alert-danger');
-                            responseMessage.innerHTML = "¡La cedula tiene que contener 8 digitos!.";
+                            toastr.error("La cedula tiene que contener 8 dígitos.",'Users Fail.');
                         } else {
                             $.ajax({
                                 url: "../assets/php/userClass.php",
@@ -423,24 +439,18 @@ if(!$connectAdmin->class == "Admin") {
                                 success: function(e) {
                                     var message = JSON.parse(e);
                                     if(message == 1) {
-                                        responseMessage.classList.remove('d-none');
-                                        responseMessage.innerHTML = "Usuario ingresado correctamente.";
+                                        toastr.success("Se agrego el usuario correctamente.",'Users Ok.');
                                         window.location.reload(true);
                                     } else if(message == 0) {
-                                        responseMessage.classList.remove('d-none');
-                                        responseMessage.innerHTML = "El usuario ya se encuentra en uso.";
+                                        toastr.error("El usuario ya se encuentra en uso.",'Users Fail.');
                                     } else if(message == 2) {
-                                        responseMessage.classList.remove('d-none');
-                                        responseMessage.innerHTML = "El Documento ("+cedula+") se encuentra en uso";
+                                        toastr.error("El Documento ("+cedula+") se encuentra en uso.",'Users Fail.');
                                     }
                                 }
                             });
                         }
                     } else {
-                        responseMessage.classList.remove('d-none');
-                        responseMessage.classList.remove('alert-success');
-                        responseMessage.classList.add('alert-danger');
-                        responseMessage.innerHTML = "¡Debes completar todos los campos!.";
+                        toastr.error("Debes completar todos los campos.",'Users Fail.');
                     }
                 });
             } else if(admGestU == 'mostrarUser') {
@@ -500,21 +510,16 @@ if(!$connectAdmin->class == "Admin") {
                                         var message = JSON.parse(e);
 
                                         if(message == 1) {
-                                            responseMessage.classList.add('d-none');
-                                            responseMessage.classList.remove('d-none');
-
-                                            responseMessage.innerHTML = "Se ha actualizado el stock.";
+                                            toastr.success("El Stock se ha aumentado correctamente.",'Stock Ok.');
+                                            document.getElementById('inputAddCantidad').value = "";
+                                            document.getElementById('inputAddCodigo').value = "";
+                                        } else if(message == 2) {
+                                            toastr.success("El código no se ha encontrado en ese estado. Se procedió a crearlo y añadimos la cantidad de stock correspondiente.",'Stock Ok.');
 
                                             document.getElementById('inputAddCantidad').value = "";
                                             document.getElementById('inputAddCodigo').value = "";
-                                        } else {
-                                            responseMessage.classList.add('d-none');
-                                            responseMessage.classList.remove('d-none');
-
-                                            responseMessage.innerHTML = "Ha ocurrido un error.";
-
-                                            document.getElementById('inputAddCantidad').value = "";
-                                            document.getElementById('inputAddCodigo').value = "";
+                                        } else if(message == 3) {
+                                            toastr.error("Ha ocurrido un error...",'Stock Fail.');
                                         }
                                     },
                                     error: function(e) {
@@ -571,10 +576,7 @@ if(!$connectAdmin->class == "Admin") {
                     if(codeDelete.trim() != "") {
                         if(qtyDelete.trim() != "") {
                             if(codeDelete.length < 6 || codeDelete.length > 6) {
-                                messageRep.classList.remove('d-none');
-                                messageRep.classList.remove('alert-success');
-                                messageRep.classList.add('alert-danger');
-                                messageRep.innerHTML = "Debes ingresar un repuesto con 6 digitos.";
+                                toastr.error("Debes ingresar un repuesto con 6 digitos.",'Stock Fail.');
 
                                 document.getElementById('inputRemoveCodigo').value = "";
                                 document.getElementById('inputRemoveCantidad').value = "";
@@ -588,28 +590,17 @@ if(!$connectAdmin->class == "Admin") {
                                         success: function(e) {
                                             var message = JSON.parse(e);
                                             if(message == 1) {
-                                                responseMessage.classList.add('d-none');
-                                                responseMessage.classList.remove('d-none');
-
-                                                responseMessage.innerHTML = "Se ha actualizado el stock.";
+                                                toastr.success("El Stock se ha reducido correctamente.",'Stock Ok.');
 
                                                 document.getElementById('inputRemoveCodigo').value = "";
                                                 document.getElementById('inputRemoveCantidad').value = "";
                                             } else if(e == 2) {
-                                                responseMessage.classList.add('d-none');
-                                                responseMessage.classList.remove('d-none');
-                                                messageRep.classList.add('alert-danger');
-                                                
-                                                responseMessage.innerHTML = "El stock no cuenta con la cantidad que deseas reducir.";
+                                                toastr.warning("El repuesto no cuenta con la cantidad que deseas reducir.",'Stock Warning.');
                                                 
                                                 document.getElementById('inputRemoveCodigo').value = "";
                                                 document.getElementById('inputRemoveCantidad').value = "";
                                             } else {
-                                                responseMessage.classList.add('d-none');
-                                                responseMessage.classList.remove('d-none');
-                                                messageRep.classList.add('alert-danger');
-
-                                                responseMessage.innerHTML = "Ha ocurrido un error.";
+                                                toastr.error("Ha ocurrido un error.",'Stock Fail.');
                                                 
                                                 document.getElementById('inputRemoveCodigo').value = "";
                                                 document.getElementById('inputRemoveCantidad').value = "";
@@ -617,10 +608,7 @@ if(!$connectAdmin->class == "Admin") {
                                         }
                                     });
                                 } else {
-                                    messageRep.classList.remove('d-none');
-                                    messageRep.classList.remove('alert-success');
-                                    messageRep.classList.add('alert-danger');
-                                    messageRep.innerHTML = "Tienes que asignar el tipo de stock.";
+                                    toastr.warning("Tienes que asignar el tipo de stock.",'Stock Fail.');
                                     
                                     document.getElementById('inputRemoveCodigo').value = "";
                                     document.getElementById('inputRemoveCantidad').value = "";
@@ -628,19 +616,13 @@ if(!$connectAdmin->class == "Admin") {
                                 
                             }
                         } else {
-                            messageRep.classList.remove('d-none');
-                            messageRep.classList.remove('alert-success');
-                            messageRep.classList.add('alert-danger');
-                            messageRep.innerHTML = "Tienes que asignar una cantidad.";
+                            toastr.error("Tienes que asignar una cantidad.",'Stock Fail.');
                             
                             document.getElementById('inputRemoveCodigo').value = "";
                             document.getElementById('inputRemoveCantidad').value = "";
                         }
                     } else {
-                        messageRep.classList.remove('d-none');
-                        messageRep.classList.remove('alert-success');
-                        messageRep.classList.add('alert-danger');
-                        messageRep.innerHTML = "No puedes dejar el valor del código vacio :(.";
+                        toastr.error("No puedes dejar el campo del código vacio.",'Stock Fail.');
 
                         document.getElementById('inputRemoveCodigo').value = "";
                         document.getElementById('inputRemoveCantidad').value = "";
@@ -664,15 +646,11 @@ if(!$connectAdmin->class == "Admin") {
                     var newCodigo = document.getElementById('inputAddNewCodigo').value;
                     var newNameRepuest = document.getElementById('inputNewNombre').value;
                     var newRepEquipos = document.getElementById('seleccion_Equipo').value;
-                    var eqCompatible = document.getElementById('seleccion_EquipoComp').value;
 
                     if(newCodigo.trim() != "") {
                         if(newNameRepuest.trim() != "") {
                             if(newCodigo.length < 6 || newCodigo.length > 6) {
-                                messageRep.classList.remove('d-none');
-                                messageRep.classList.remove('alert-success');
-                                messageRep.classList.add('alert-danger');
-                                messageRep.innerHTML = "Debes ingresar un repuesto con 6 digitos.";
+                                toastr.error("Debes ingresar un repuesto con 6 digitos.",'Stock Fail.');
 
                                 document.getElementById('inputAddNewCodigo').value = "";
                                 document.getElementById('inputNewNombre').value = "";
@@ -680,24 +658,23 @@ if(!$connectAdmin->class == "Admin") {
                                     if(newRepEquipos != "") {
                                         $.ajax({
                                             url: "../assets/php/inventoryClass.php",
-                                            data: {newCode: newCodigo, newNombre: newNameRepuest, newRepEquipo: newRepEquipos, eqComp: eqCompatible, funcion: "addNewRepuest"},
+                                            data: {newCode: newCodigo, newNombre: newNameRepuest, newRepEquipo: newRepEquipos, funcion: "addNewRepuest"},
                                             type: "POST",
                                             dataType: "JSON",
                                             success: function(e) {
                                                 var message = JSON.parse(e);
                                                 if(message == 1) {
-                                                    responseMessage.classList.add('d-none');
-                                                    responseMessage.classList.remove('d-none');
-
-                                                    responseMessage.innerHTML = "Repuesto ingresado correctamente.";
+                                                    toastr.success("Se agrego el repuesto correctamente.",'Stock Ok.');
                                                     
                                                     document.getElementById('inputAddNewCodigo').value = "";
                                                     document.getElementById('inputNewNombre').value = "";
-                                                } else {
-                                                    responseMessage.classList.add('d-none');
-                                                    responseMessage.classList.remove('d-none');
+                                                } else if(message == 2) {
+                                                    toastr.error("Ingresaste un código ya existente, intenta nuevamente.",'Stock Fail.');
 
-                                                    responseMessage.innerHTML = "Ha ocurrido un error.";
+                                                    document.getElementById('inputAddNewCodigo').value = "";
+                                                    document.getElementById('inputNewNombre').value = "";
+                                                } else {
+                                                    toastr.error("Ha ocurrido un error.",'Stock Fail.');
 
                                                     document.getElementById('inputAddNewCodigo').value = "";
                                                     document.getElementById('inputNewNombre').value = "";
@@ -708,26 +685,20 @@ if(!$connectAdmin->class == "Admin") {
                                             }
                                         });
                                     } else {
-                                        messageRep.classList.remove('d-none');
-                                        messageRep.classList.remove('alert-success');
-                                        messageRep.classList.add('alert-danger');
-                                        messageRep.innerHTML = "Tienes que asignarle un equipo al repuesto.";
+                                        toastr.error("Tienes que asignar un equipo al repuesto.",'Stock Fail.');
+
+                                        document.getElementById('inputAddNewCodigo').value = "";
+                                        document.getElementById('inputNewNombre').value = "";
                                     }
                                 }
                         } else {
-                            messageRep.classList.remove('d-none');
-                            messageRep.classList.remove('alert-success');
-                            messageRep.classList.add('alert-danger');
-                            messageRep.innerHTML = "No puedes dejar el valor del nombre vacio :(.";
-                        
+                            toastr.warning("No puedes dejar el campo del nombre vacio.",'Stock Fail.');
+
                             document.getElementById('inputAddNewCodigo').value = "";
                             document.getElementById('inputNewNombre').value = "";
                         }
                     } else {
-                        messageRep.classList.remove('d-none');
-                        messageRep.classList.remove('alert-success');
-                        messageRep.classList.add('alert-danger');
-                        messageRep.innerHTML = "No puedes dejar el valor del código vacio :(.";
+                        toastr.error("No puedes dejar el campo del código vacio.",'Stock Fail.');
                         
                         document.getElementById('inputAddNewCodigo').value = "";
                         document.getElementById('inputNewNombre').value = "";
