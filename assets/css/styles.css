@@ -1,6 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300&display=swap');
+
 * {
     padding:_0px;
     margin: 0px;
+    font-family: 'Nunito', sans-serif;
+
 }
 .nav-MenuVert .navbar {
     width: 100%;

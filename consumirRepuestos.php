@@ -207,7 +207,7 @@ if($_SESSION['sesion_exito'] != 1) {
                                 success: function(e) {
                                     var message = JSON.parse(e);
                                     if(message == 1) {
-                                        toastr.success("Se ha devuelto el repuesto: " + codigo + " correctamente.",'Repuesto Consumido.');
+                                        toastr.success("Se ha devuelto el repuesto: " + codigo + " correctamente.",'Repuesto Devuelto.');
                                         document.getElementById('inputRepuesto').value = "";
                                     } else if(message == 3){
                                         toastr.warning("El código: " + codigo + " no existe en ese estado. ¡Intenta Nuevamente!");
