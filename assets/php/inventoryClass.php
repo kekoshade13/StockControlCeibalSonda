@@ -137,6 +137,20 @@ if(!empty($_POST['funcion'])) {
             }
             inventoryClass::obtenerInventario($codigo, $modelo, $compatible, $tipoStock);
             break;
+        case 'obtenerRepEqComp':
+            if(!empty($_POST['code'])) {
+                $codeEqComp1 = $_POST['code'];
+            } else {
+                $codeEqComp1 = '';
+            }
+            if(!empty($_POST['newEqComp'])) {
+                $newEqComp = $_POST['newEqComp'];
+            } else {
+                $newEqComp = '';
+            }
+
+            inventoryClass::obtenerRepuestosCompatibles($codeEqComp1, $newEqComp);
+            break;
     }
 }
 
@@ -441,6 +455,95 @@ class inventoryClass {
         }
     }
 
+    public static function obtenerRepuestosCompatibles($code, $equipo) {
+        $db = getDB();
+        try {
+            $idCode = inventoryClass::obtenerDatosCodigos($code);
+            $dataGen = inventoryClass::obtenerDataCode($code);
+
+            $stmt = $db->prepare("select * from spareparts as sp inner join equipos_repuestos as eqR inner join equipos as eq  on eqR.repuesto_id=sp.id_code and eqR.equipo_id=eq.id_equipo where eqR.repuesto_id = ?");
+            $stmt->execute([$idCode]);
+
+            $obtenerEquipos = inventoryClass::obtenerEquipos();
+
+            $obtenerEqCompNoAnadidos= inventoryClass::obtenerEquiposCompatiblesNoAnadidos($code);
+
+            $count = $stmt->rowCount();
+            if($count > 0) {
+                $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $datos = '<div class="row">
+                <div class="col-sm-6 mb-3 mb-sm-0">
+                    <div class="row mb-5">
+                        <div class="col-6 mb-3">
+                            <label for="equipCompGest">Nombre del repuesto:</label>
+                        </div>
+                        <div class="col-6" id="eqRepComp">
+                            <input type="text" class="form-control" value="'.$dataGen['name'].'" disabled/>
+                        </div>
+                    </div>
+
+                    <div class="row mb-5">
+                        <div class="col-6 mb-3">
+                            <label for="listaEqComp">Equipos Compatibles:</label>
+                        </div>
+                        <div class="col-6 listaEqCompatibles" id="listaEqComp">
+                            <div style="width: 200px; height: 200px; overflow-y: scroll;">
+                                <ul>';
+                                    foreach($data as $repComp) {
+                                    $datos .= '<li>'.$repComp['nameEq'].'</li>';
+                                    }
+
+                                    $datos .= '
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="row col-9">
+                        <div class="col-6 row mb-5" style="margin-left: 35px;">
+                            <div class="col-12 mb-3">
+                                <label for="equipCompGest" class="w-100 text-center" style="border-bottom: solid 1px green">Agregar</label>
+                            </div>
+                            <div class="col-12">
+                                <div class="w-100" style="height: 150px;">
+                                    <select name="" id="" size="4" class="w-100" style="border-radius: 10px;">';
+                                    foreach($obtenerEqCompNoAnadidos as $equiposs) {
+                                        $datos .= '<option value="' . $equiposs->id_equipo . '">' . $equiposs->nameEq. '</option>';
+                                    }
+                                    $datos .= '</select>
+                                </div>
+                                <button type="button" class="btn btn-outline-success w-100">Añadir</button>
+                            </div>
+                        </div>
+
+                        <div class="col-6 row mb-5">
+                            <div class="col-12 mb-3">
+                                <label for="equipCompGest" class="w-100 text-center" style="border-bottom: solid 1px red">Quitar</label>
+                            </div>
+                            <div class="col-12">
+                                <div class="w-100" style="height: 150px;">
+                                    <select name="" id="" size="4" class="w-100" style="border-radius: 10px;">';
+                                    foreach($data as $repComp) {
+                                        $datos .= '<option value="'.$repComp['nameEq'].'">'.$repComp['nameEq'].'</option>';
+                                    }
+                                    $datos .= '</select>
+                                </div>
+                                <button type="button" class="btn btn-outline-danger w-100">Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>';
+                echo $datos;
+            } else {
+                echo json_encode(0);
+            }
+        } catch(PDOException $e) {
+            echo '"error":{"text:"'. $e->getMessage().'}}';
+        }
+    }
+
     public static function consumirRepuestos($codigo, $nombre, $tipoStock) {
         $db = getDB();
         try {
@@ -716,6 +819,40 @@ class inventoryClass {
                 $stmt = $stmt->fetch();
                 $idCodigo = $stmt['id_code'];
                 return $idCodigo;
+            }
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
+    }
+
+    public static function obtenerEquiposCompatiblesNoAnadidos($code) {
+        $db = getDB();
+
+        try {
+            $id = inventoryClass::obtenerDatosCodigos($code);
+            $stmt = $db->prepare("select * from equipos where id_equipo not in (select equipo_id from equipos_repuestos where repuesto_id = '$id')");
+
+            $stmt->execute();
+
+            $datos = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+            return $datos;
+        } catch(PDOException $e) {
+            echo $e->getMessage();
+        }
+    }
+
+    public static function obtenerDataCode($code) {
+        $db = getDB();
+
+        try {
+            $stmt = $db->prepare("SELECT * FROM SpareParts where code = ?");
+            $stmt->execute([$code]);
+
+            $countCode = $stmt->rowCount();
+            if($countCode > 0) {
+                $stmt = $stmt->fetch();
+                return $stmt;
             }
         } catch (PDOException $e) {
             echo $e->getMessage();

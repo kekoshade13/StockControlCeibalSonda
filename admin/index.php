@@ -290,89 +290,22 @@ if(!$connectAdmin->class == "Admin") {
 
                 <div class="col-11 m-2 d-none mt-5" id="gestRepCompatibles" style="display: inline-block; position: relative; left: 42px;">
                     <div class="row">
-                        <div class="col-sm-6 mb-3 mb-sm-0">
-                            <div class="row mb-5">
-                                <div class="col-6">
-                                    <label for="inputCodeRepComp">Código del repuesto:</label>
-                                </div>
-                                <div class="col-6">
-                                    <input type="text" class="form-control" id="inputCodeRepComp" placeholder="Ingresa el código">
-                                </div>
+                        <div class="row mb-5">
+                            <div class="col-3">
+                                <label for="inputCodeRepComp">Código del repuesto:</label>
                             </div>
-
-                            <div class="row mb-5">
-                                <div class="col-6 mb-3">
-                                    <label for="equipCompGest">Equipo:</label>
-                                </div>
-                                <div class="col-6">
-                                    <input type="text" class="form-control" id="equipCompGest" value="Prueba" disabled>
-                                </div>
+                            <div class="col-4">
+                                <input type="text" class="form-control" id="inputCodeRepComp" placeholder="Ingresa el código">
                             </div>
-
-                            <div class="row mb-5">
-                                <div class="col-6 mb-3">
-                                    <label for="inputCodeRepComp">Equipos Compatibles:</label>
-                                </div>
-                                <div class="col-6 listaEqCompatibles">
-                                    <div style="width: 200px; height: 200px; overflow-y: scroll;">
-                                        <ul>
-                                            <li>Wezen</li>
-                                            <li>Sirio</li>
-                                            <li>PA2</li>
-                                            <li>PA3</li>
-                                            <li>SF20BA</li>
-                                            <li>TAB82</li>
-                                            <li>Rigel</li>
-                                            <li>Bellatrix</li>
-                                        </ul>
-                                    </div>
-                                </div>
+                            <div class="col-2">
+                                <button class="btn btn-success buscarCodeComp">🔍︎</button>
                             </div>
                         </div>
-                        <div class="col-sm-6">
-                            <div class="row col-9">
-                                <div class="col-6 row mb-5" style="margin-left: 35px;">
-                                    <div class="col-12 mb-3">
-                                        <label for="equipCompGest" class="w-100 text-center" style="border-bottom: solid 1px green">Agregar</label>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="w-100" style="height: 150px;">
-                                            <select name="" id="" multiple class="w-100" style="border-radius: 10px;">
-                                                <option value="">Wezen</option>
-                                                <option value="">Sirio</option>
-                                                <option value="">PA2</option>
-                                                <option value="">PA3</option>
-                                                <option value="">Bellatrix</option>
-                                                <option value="">Rigel</option>
-                                                <option value="">TAB82</option>
-                                            </select>
-                                        </div>
-                                        <button type="button" class="btn btn-outline-success w-100">Añadir</button>
-                                    </div>
-                                </div>
+                    </div>
+                    <div id="contListRepComp">
 
-                                <div class="col-6 row mb-5">
-                                    <div class="col-12 mb-3">
-                                        <label for="equipCompGest" class="w-100 text-center" style="border-bottom: solid 1px red">Quitar</label>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="w-100" style="height: 150px;">
-                                            <select name="" id="" multiple class="w-100" style="border-radius: 10px;">
-                                                <option value="">Wezen</option>
-                                                <option value="">Sirio</option>
-                                                <option value="">PA2</option>
-                                                <option value="">PA3</option>
-                                                <option value="">Bellatrix</option>
-                                                <option value="">Rigel</option>
-                                                <option value="">TAB82</option>
-                                            </select>
-                                        </div>
-                                        <button type="button" class="btn btn-outline-danger w-100">Eliminar</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>    
+                    </div>
+                     
                 </div>
                 <!-- -------------------------------------------------------------- Fin Gestion Repuestos -------------------------------------------------------------- -->
                         
@@ -791,6 +724,29 @@ if(!$connectAdmin->class == "Admin") {
                 formAddStock.classList.add('d-none');
                 formAddNewProduct.classList.add('d-none');
                 formGestRepuestos.classList.remove('d-none');
+
+                $(document).on('click', '.buscarCodeComp', function(event) {
+                    var codeEqCompe = document.getElementById('inputCodeRepComp').value;
+                    if(codeEqCompe.trim() != "") {
+                        if(codeEqCompe.length > 6 || codeEqCompe.length < 6) {
+                            toastr.error("Tienes que ingresar un código de 6 dígitos", "Error");
+                        } else {
+                            $.ajax({
+                                url: "../assets/php/inventoryClass.php",
+                                data: {code: codeEqCompe, funcion: 'obtenerRepEqComp'},
+                                type: "POST",
+                                success: function(e) {
+                                    $('#contListRepComp').html(e);
+                                }, 
+                                error: function(e) {
+                                    $('#contListRepComp').html(e);
+                                }
+                            });
+                        }
+                    } else {
+                        toastr.error("No puedes buscar un campo vacio.", "Error");
+                    }
+                });
             }
         }
 

@@ -73,10 +73,32 @@ if($_SESSION['sesion_exito'] != 1) {
                     <form id="consumirForm">
                         <div class="form-group row">
                             <label for="staticEmail" class="col-sm-3 col-form-label">Usuario</label>
-                                <div class="col-sm-9 mb-4">
-                                    <input type="text" readonly class="form-control-plaintext" name="nombre" id="staticName" value="<?php echo $dataUser->nombre_u; ?>">
+                            <div class="col-sm-9 mb-4">
+                                <input type="text" readonly class="form-control-plaintext" name="nombre" id="staticName" value="<?php echo $dataUser->nombre_u; ?>">
+                            </div>
+                        </div>
+                            
+                        <div class="form-group row mb-3">
+                            <div class="col-sm-6 row">
+                                <div class="col-sm-6">
+                                    <label for="nEscuela">N° Escuela</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input type="text" style="margin-left: 12px;" class="form-control nEscuela" name="nEscuela" id="nEscuela" pattern="[0,9]" placeholder="Escuela">
                                 </div>
                             </div>
+                            
+                            <div class="col-sm-6 row mb-3">
+                                <div class="col-sm-6">
+                                    <label for="nSerie">N° Serie</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control nSerie" name="nSerie" id="nSerie" pattern="[0,9]" placeholder="Serie">
+                                </div>
+                            </div>
+                        </div>
+
+
                             <div class="form-group row">
                                 <label for="inputRepuesto" class="col-sm-3 col-form-label mr-5">Repuesto</label>
                                 <div class="col-sm-9 mb-3">
@@ -85,7 +107,7 @@ if($_SESSION['sesion_exito'] != 1) {
                             </div>
                             <div class="form-group row">
                                 <label for="selectTipoStock" class="col-sm-3 col-form-label mr-5">Tipo de Stock</label>
-                                <div class="col-sm-9 mb-5">
+                                <div class="col-sm-9 mb-4">
                                     <select class="form-select" id="selectTipoStock">
                                         <option value="" selected>Selecciona el tipo de Stock</option>
                                         <?php foreach($obtenerTipoStock as $tipoStock) { ?>
@@ -94,6 +116,12 @@ if($_SESSION['sesion_exito'] != 1) {
                                     </select>
                                 </div>
 
+                            </div>
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" value="" id="checkFlasheoAj">
+                                <label class="form-check-label" for="checkFlasheoAj">
+                                    Flasheo/Ajuste
+                                </label>
                             </div>
                             <input type="button" class="btn btn-success consumRep w-100" id="buttonOper" value="Consumir Repuesto"/>
                     </form>
