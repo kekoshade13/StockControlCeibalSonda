@@ -143,13 +143,33 @@ if(!empty($_POST['funcion'])) {
             } else {
                 $codeEqComp1 = '';
             }
+            inventoryClass::obtenerRepuestosCompatibles($codeEqComp1);
+            break;
+        case 'anadirRepEqComp':
+            if(!empty($_POST['code'])) {
+                $codeEqComp2 = $_POST['code'];
+            } else {
+                $codeEqComp2 = '';
+            }
             if(!empty($_POST['newEqComp'])) {
                 $newEqComp = $_POST['newEqComp'];
             } else {
                 $newEqComp = '';
             }
-
-            inventoryClass::obtenerRepuestosCompatibles($codeEqComp1, $newEqComp);
+            inventoryClass::addRepCompatible($codeEqComp2, $newEqComp);
+            break;
+        case 'removeRepEqComp':
+            if(!empty($_POST['code'])) {
+                $codeEqComp2 = $_POST['code'];
+            } else {
+                $codeEqComp2 = '';
+            }
+            if(!empty($_POST['quitEqComp'])) {
+                $quitEqComp = $_POST['quitEqComp'];
+            } else {
+                $quitEqComp = '';
+            }
+            inventoryClass::removeRepCompatible($codeEqComp2, $quitEqComp);
             break;
     }
 }
@@ -243,8 +263,6 @@ class inventoryClass {
 
                 
                 $tabla .= "</tr>";
-            } else if(!empty($compatible) && !empty($codigo)) {
-
             }
 
             if(empty($compatible)) {
@@ -455,7 +473,7 @@ class inventoryClass {
         }
     }
 
-    public static function obtenerRepuestosCompatibles($code, $equipo) {
+    public static function obtenerRepuestosCompatibles($code) {
         $db = getDB();
         try {
             $idCode = inventoryClass::obtenerDatosCodigos($code);
@@ -466,7 +484,7 @@ class inventoryClass {
 
             $obtenerEquipos = inventoryClass::obtenerEquipos();
 
-            $obtenerEqCompNoAnadidos= inventoryClass::obtenerEquiposCompatiblesNoAnadidos($code);
+            $obtenerEqCompNoAnadidos = inventoryClass::obtenerEquiposCompatiblesNoAnadidos($code);
 
             $count = $stmt->rowCount();
             if($count > 0) {
@@ -507,13 +525,14 @@ class inventoryClass {
                             </div>
                             <div class="col-12">
                                 <div class="w-100" style="height: 150px;">
-                                    <select name="" id="" size="4" class="w-100" style="border-radius: 10px;">';
+                                    <select name="" id="selectAddEqComp" size="4" class="w-100" style="border-radius: 10px;">
+                                    <option disabled selected value="">Añadir</option>';
                                     foreach($obtenerEqCompNoAnadidos as $equiposs) {
                                         $datos .= '<option value="' . $equiposs->id_equipo . '">' . $equiposs->nameEq. '</option>';
                                     }
                                     $datos .= '</select>
                                 </div>
-                                <button type="button" class="btn btn-outline-success w-100">Añadir</button>
+                                <button type="button" class="btn btn-outline-success w-100 btnAddRepComp">Añadir</button>
                             </div>
                         </div>
 
@@ -523,13 +542,14 @@ class inventoryClass {
                             </div>
                             <div class="col-12">
                                 <div class="w-100" style="height: 150px;">
-                                    <select name="" id="" size="4" class="w-100" style="border-radius: 10px;">';
+                                    <select name="" id="selectRemoveEqComp" size="4" class="w-100" style="border-radius: 10px;">
+                                    <option disabled selected value="">Quitar</option>';
                                     foreach($data as $repComp) {
-                                        $datos .= '<option value="'.$repComp['nameEq'].'">'.$repComp['nameEq'].'</option>';
+                                        $datos .= '<option value="'.$repComp['id_equipo'].'">'.$repComp['nameEq'].'</option>';
                                     }
                                     $datos .= '</select>
                                 </div>
-                                <button type="button" class="btn btn-outline-danger w-100">Eliminar</button>
+                                <button type="button" class="btn btn-outline-danger w-100 btnQuitRepComp">Eliminar</button>
                             </div>
                         </div>
                     </div>
@@ -541,6 +561,67 @@ class inventoryClass {
             }
         } catch(PDOException $e) {
             echo '"error":{"text:"'. $e->getMessage().'}}';
+        }
+    }
+
+    public static function addRepCompatible($code, $newEqComp) {
+        $db = getDB();
+
+        try {
+            $idCode = inventoryClass::obtenerDatosCodigos($code);
+
+            $consultIfExtists = $db->prepare("select * from equipos_repuestos where repuesto_id = ? and equipo_id = ?");
+
+            $consultIfExtists->execute([$idCode, $newEqComp]);
+
+            $countExists = $consultIfExtists->rowCount();
+
+            if(!($countExists > 0)) {
+                $stmt = $db->prepare("insert into equipos_repuestos (repuesto_id, equipo_id) values (?, ?)");
+
+                $stmt->execute([$idCode, $newEqComp]);
+    
+    
+                if($stmt) {
+                    echo json_encode(1);
+                } else {
+                    echo json_encode(0);
+                }
+            } else {
+                echo json_encode(2);
+            }
+        } catch(PDOException $e) {
+            echo $e->getMessage();
+        }
+    }
+
+    public static function removeRepCompatible($code, $newEqComp) {
+        $db = getDB();
+
+        try {
+            $idCode = inventoryClass::obtenerDatosCodigos($code);
+
+            $consultIfExtists = $db->prepare("select * from equipos_repuestos where repuesto_id = ? and equipo_id = ?");
+
+            $consultIfExtists->execute([$idCode, $newEqComp]);
+
+            $countExists = $consultIfExtists->rowCount();
+
+            if (!($countExists > 0)) {
+                echo json_encode(2);
+            } else {
+                $stmt = $db->prepare("delete from equipos_repuestos where repuesto_id = ? and equipo_id = ?");
+
+                $stmt->execute([$idCode, $newEqComp]);
+
+                if ($stmt) {
+                    echo json_encode(1);
+                } else {
+                    echo json_encode(0);
+                }
+            }
+        } catch(PDOException $e) {
+            echo $e->getMessage();
         }
     }
 
@@ -577,7 +658,7 @@ class inventoryClass {
             } else {
                 echo json_encode(4);
             }
-        }catch(PDOException $e) {
+        } catch(PDOException $e) {
             echo $e->getMessage();
         }
     }
@@ -641,7 +722,15 @@ class inventoryClass {
                 $stmt = $db->prepare("INSERT INTO SpareParts (code, name, id_equip) VALUES (?, ?, ?)");
                 $stmt->execute([$code, $name, $equipo]);
                 if($stmt) {
-                    echo json_encode(1);
+                    $id = inventoryClass::obtenerDatosCodigos($code);
+                    $stmt1 = $db->prepare("insert into equipos_repuestos (repuesto_id, equipo_id) values (?, ?)");
+                    $stmt1->execute([$id, $equipo]);
+
+                    if($stmt1) {
+                        echo json_encode(1);
+                    } else {
+                        echo json_encode(0);
+                    }
                 } else {
                     echo json_encode(0);
                 }

@@ -376,6 +376,7 @@ if(!$connectAdmin->class == "Admin") {
                 formAddStock.classList.add('d-none');
                 formReducirStock.classList.add('d-none');
                 formAddNewProduct.classList.add('d-none');
+                formGestRepuestos.classList.add('d-none');
 
                 document.getElementById('resultGestionP').innerHTML = "Gestion Usuarios";
 
@@ -397,6 +398,7 @@ if(!$connectAdmin->class == "Admin") {
             if(admGestU == 'addUser') {
                 document.getElementById('resultadoGestionU').innerHTML = "Añadir Usuarios";
                 formMostrarUser.classList.add('d-none');
+                formGestRepuestos.classList.add('d-none');
                 formAddUser.classList.remove('d-none');
                 jQuery(document).ready(function(){
                     // Listen for the input event.
@@ -483,6 +485,7 @@ if(!$connectAdmin->class == "Admin") {
 
                 formReducirStock.classList.add('d-none');
                 formAddNewProduct.classList.add('d-none');
+                formGestRepuestos.classList.add('d-none');
                 formAddStock.classList.remove('d-none');
 
                 jQuery(document).ready(function(){
@@ -566,6 +569,7 @@ if(!$connectAdmin->class == "Admin") {
 
                 formAddNewProduct.classList.add('d-none');
                 formAddStock.classList.add('d-none');
+                formGestRepuestos.classList.add('d-none');
                 formReducirStock.classList.remove('d-none');
                 jQuery(document).ready(function(){
                     // Listen for the input event.
@@ -647,6 +651,7 @@ if(!$connectAdmin->class == "Admin") {
                 
                 formReducirStock.classList.add('d-none');
                 formAddStock.classList.add('d-none');
+                formGestRepuestos.classList.add('d-none');
                 formAddNewProduct.classList.remove('d-none');
                 jQuery(document).ready(function(){
                     // Listen for the input event.
@@ -725,6 +730,14 @@ if(!$connectAdmin->class == "Admin") {
                 formAddNewProduct.classList.add('d-none');
                 formGestRepuestos.classList.remove('d-none');
 
+                jQuery(document).ready(function(){
+                    // Listen for the input event.
+                    jQuery("#inputCodeRepComp").on('input', function (evt) {
+                        // Allow only numbers.
+                        jQuery(this).val(jQuery(this).val().replace(/[^0-9]/g, ''));
+                    });
+                });
+
                 $(document).on('click', '.buscarCodeComp', function(event) {
                     var codeEqCompe = document.getElementById('inputCodeRepComp').value;
                     if(codeEqCompe.trim() != "") {
@@ -737,14 +750,74 @@ if(!$connectAdmin->class == "Admin") {
                                 type: "POST",
                                 success: function(e) {
                                     $('#contListRepComp').html(e);
-                                }, 
+                                },
                                 error: function(e) {
-                                    $('#contListRepComp').html(e);
+                                    alert("Paso algo inesperado");
                                 }
                             });
                         }
                     } else {
                         toastr.error("No puedes buscar un campo vacio.", "Error");
+                    }
+                });
+
+                $(document).on('click', '.btnAddRepComp', function(event) {
+                    var codeEqCompe1 = document.getElementById('inputCodeRepComp').value;
+                    var newEqCompG = document.getElementById('selectAddEqComp').value;
+                    
+                    if(newEqCompG != "") {
+                        $.ajax({
+                            url: "../assets/php/inventoryClass.php",
+                            data: { code: codeEqCompe1, newEqComp: newEqCompG, funcion:  'anadirRepEqComp'},
+                            type: "POST",
+                            dataType: "JSON",
+                            success: function(e) {
+                                var messageif = JSON.parse(e);
+
+                                if(messageif == 0) {
+                                    toastr.error("Ha ocurrido un error al añadir el equipo.", "Error inesperado");
+                                } else if(messageif == 2) {
+                                    toastr.warning("El equipo ya está asociado a este repuesto.", "Intenta nuevamente.");
+                                } else if(messageif == 1) {
+                                    toastr.success("El equipo se ha asociado exitosamente.", "¡Operacion Exitosa!");
+                                }
+                            },
+                            error: function(e) {
+                                alert("Paso algo inesperado");
+                            }
+                        });
+                    } else {
+                        toastr.error("Para añadir un equipo tienes que seleccionarlo primero.", "Error al intentar añadir el equipo");
+                    }
+                });
+
+                $(document).on('click', '.btnQuitRepComp', function(event) {
+                    var codeEqCompe2 = document.getElementById('inputCodeRepComp').value;
+                    var quitEqCompG = document.getElementById('selectRemoveEqComp').value;
+                    
+                    if(quitEqCompG != "") {
+                        $.ajax({
+                            url: "../assets/php/inventoryClass.php",
+                            data: { code: codeEqCompe2, quitEqComp: quitEqCompG, funcion:  'removeRepEqComp'},
+                            type: "POST",
+                            dataType: "JSON",
+                            success: function(e) {
+                                var messageif1 = JSON.parse(e);
+
+                                if(messageif1 == 0) {
+                                    toastr.error("Ha ocurrido un error al intentar remover el equipo.", "Error inesperado");
+                                } else if(messageif1 == 2) {
+                                    toastr.warning("El equipo no está asociado a este repuesto.", "Intenta nuevamente.");
+                                } else if(messageif1 == 1) {
+                                    toastr.success("El equipo se ha desasociado exitosamente.", "¡Operacion Exitosa!");
+                                }
+                            },
+                            error: function(e) {
+                                alert("Paso algo inesperado");
+                            }
+                        });
+                    } else {
+                        toastr.error("Para quitar un equipo tienes que seleccionarlo primero.", "Error al intentar remover el equipo");
                     }
                 });
             }
